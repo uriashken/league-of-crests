@@ -664,20 +664,39 @@ export default function App() {
           {tab === "search" && (
             <div>
               <div style={G.card}>
-                <h2 style={G.cTitle}>{"🔍 ערים עם סמל חסר או שבור (" + missing.length + ")"}</h2>
-                {missing.length === 0
-                  ? <div style={{ color: "#50c864", fontSize: "0.9rem" }}>✅ כל הסמלים תקינים</div>
-                  : <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                    {missing.map(city => (
-                      <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.3)" })}
-                        onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
-                        <div style={Object.assign({}, G.thumb, { display: "flex", alignItems: "center", justifyContent: "center" })}>❓</div>
-                        <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
-                        <span style={{ color: "#c4a84f", fontSize: "0.8rem" }}>תקן ›</span>
-                      </div>
-                    ))}
-                  </div>
-                }
+                <h2 style={G.cTitle}>🔍 עריכת סמלי ערים</h2>
+                <input style={Object.assign({}, G.inp, { marginBottom: 12 })} placeholder="חיפוש עיר…" value={sq}
+                  onChange={e => { setSq(e.target.value); setStgt(null); setSmsg(null); }} />
+                {(() => {
+                  const q = sq.trim();
+                  const list = q ? all.filter(c => c.name.includes(q)) : all.slice().sort((a, b) => {
+                    const ab = !!failed[a.id], bb = !!failed[b.id];
+                    if (ab !== bb) return ab ? -1 : 1;
+                    return a.name.localeCompare(b.name, "he");
+                  });
+                  return (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 420, overflowY: "auto" }}>
+                      {list.map(city => {
+                        const src = getSrc(city, ov);
+                        const isBad = !!failed[city.id];
+                        return (
+                          <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer" }, isBad ? { borderColor: "rgba(255,140,0,.4)" } : {})}
+                            onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
+                            <div style={{ width: 52, height: 34, flexShrink: 0, background: "#fff", borderRadius: 4, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))}
+                                onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[city.id]; return n; })} />
+                            </div>
+                            <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
+                            {isBad && <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>⚠️ שבור</span>}
+                            <span style={{ color: "#c4a84f", fontSize: "0.8rem", marginRight: 8 }}>עריכה ›</span>
+                          </div>
+                        );
+                      })}
+                      {list.length === 0 && <div style={{ color: "#5a7099", fontSize: "0.85rem" }}>לא נמצאה עיר</div>}
+                    </div>
+                  );
+                })()}
                 {smsg && !stgt && <div style={{ color: smsg.ok ? "#50c864" : "#ff6b6b", fontWeight: 600, marginTop: 10 }}>{smsg.t}</div>}
               </div>
 
