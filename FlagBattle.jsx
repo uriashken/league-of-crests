@@ -441,15 +441,17 @@ export default function App() {
   }
 
   async function addOne() {
-    const name = san(aname);
+    const name = san(aname.trim());
     const url = normUrl(aurl);
     if (!name) { setAmsg({ ok: false, t: "יש להזין שם עיר" }); return; }
     if (!url.startsWith("http")) { setAmsg({ ok: false, t: "URL חייב להתחיל ב-http" }); return; }
     if (!aurlOk) { setAmsg({ ok: false, t: "הלינק לא נטען" }); return; }
+    const exists = CITIES.some(c => c.name === name) || custom.some(c => c.name === name);
+    if (exists) { setAmsg({ ok: false, t: name + " כבר קיימת ברשימה" }); return; }
     const res = mergeCity(name, url, custom, ov);
     await persist(res.cc, res.ov);
     setAname(""); setAurl(""); setAurlOk(null);
-    setAmsg({ ok: true, t: name + " נוספה/עודכנה!" });
+    setAmsg({ ok: true, t: name + " נוספה!" });
     setTimeout(() => setAmsg(null), 3000);
   }
 
@@ -476,13 +478,16 @@ export default function App() {
       const row = irows[i];
       const name = san(String(row[incol] || "").trim());
       let url = String(row[iucol] || "").trim();
-      if (isWikiMediaUrl(url)) url = await resolveWikiUrl(url);
-      else url = url;
       if (!name || !url.startsWith("http")) { skip++; continue; }
-      const res = mergeCity(name, url, cc, curOv); cc = res.cc; curOv = res.ov; upd++;
+      const exists = CITIES.some(c => c.name === name) || cc.some(c => c.name === name);
+      if (exists) { skip++; continue; }
+      if (isWikiMediaUrl(url)) url = await resolveWikiUrl(url);
+      const nc = { id: "c-"+slug(name)+"-"+Date.now(), name, urlFlag: url, custom: true, addedAt: new Date().toISOString() };
+      cc = cc.concat([nc]);
+      upd++;
     }
     await persist(cc, curOv);
-    setImsg({ ok: true, t: "עודכנו/נוספו " + upd + (skip ? " · " + skip + " דולגו" : "") });
+    setImsg({ ok: true, t: "נוספו " + upd + " ערים חדשות" + (skip ? " · " + skip + " דולגו (קיימות או ללא קישור)" : "") });
     setIfile(null); setIrows(null); setIcols(null); setIprev([]);
     if (ifRef.current) ifRef.current.value = "";
     setIimporting(false);
@@ -592,10 +597,9 @@ export default function App() {
   if (view === "admin") {
     const TABS = [
       { id: "requests", l: "📬 בקשות" + (requests.length > 0 ? " (" + requests.length + ")" : "") },
-      { id: "search", l: "🔍 חיפוש ועריכה" },
-      { id: "add", l: "✏️ הוספה מהירה" },
+      { id: "add", l: "✏️ הוספה ידנית" },
+      { id: "search", l: "🔍 עריכה" },
       { id: "import", l: "📥 ייבוא גיליון" },
-      { id: "manage", l: "🗂️ ניהול (" + custom.length + ")" },
       { id: "settings", l: "⚙️ הגדרות" },
       { id: "security", l: "🛡️ אבטחה" },
     ];
@@ -660,38 +664,20 @@ export default function App() {
           {tab === "search" && (
             <div>
               <div style={G.card}>
-                <h2 style={G.cTitle}>🔍 חיפוש עיר לעריכת דגל</h2>
-                <input style={Object.assign({}, G.inp, { marginBottom: 8 })} placeholder="הקלד שם עיר…" value={sq} autoFocus
-                  onChange={e => { setSq(e.target.value); setStgt(null); setSmsg(null); }} />
-                {sq.trim().length > 0 && (
-                  <div style={{ fontSize: "0.75rem", color: "#5a7099", marginBottom: 10 }}>{sres.length + " תוצאות"}</div>
-                )}
-                {sres.length > 0 && !stgt && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                    {sres.map(city => {
-                      const bad = failed[city.id] && !city.customOverride && !city.custom;
-                      return (
-                        <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer" })}
-                          onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); }}>
-                          <div style={Object.assign({}, G.thumb, { display: "flex", alignItems: "center", justifyContent: "center" })}>
-                            {bad
-                              ? <span>❓</span>
-                              : <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
-                            }
-                          </div>
-                          <span style={{ fontWeight: 600, color: "#e8ecf4", minWidth: 80 }}>{city.name}</span>
-                          <span style={{ fontSize: "0.7rem", color: city.custom ? "#4a9f6f" : "#5a7099", flex: 1 }}>
-                            {city.custom ? "מותאם" : "מובנה"}{bad && <span style={{ color: "#ff9966" }}> ⚠️</span>}
-                          </span>
-                          <span style={{ color: "#c4a84f", fontSize: "0.8rem" }}>עריכה ›</span>
-                        </div>
-                      );
-                    })}
+                <h2 style={G.cTitle}>{"🔍 ערים עם סמל חסר או שבור (" + missing.length + ")"}</h2>
+                {missing.length === 0
+                  ? <div style={{ color: "#50c864", fontSize: "0.9rem" }}>✅ כל הסמלים תקינים</div>
+                  : <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                    {missing.map(city => (
+                      <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.3)" })}
+                        onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
+                        <div style={Object.assign({}, G.thumb, { display: "flex", alignItems: "center", justifyContent: "center" })}>❓</div>
+                        <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
+                        <span style={{ color: "#c4a84f", fontSize: "0.8rem" }}>תקן ›</span>
+                      </div>
+                    ))}
                   </div>
-                )}
-                {sq.trim().length > 0 && sres.length === 0 && (
-                  <div style={{ color: "#5a7099", fontSize: "0.85rem" }}>לא נמצאה עיר בשם זה</div>
-                )}
+                }
                 {smsg && !stgt && <div style={{ color: smsg.ok ? "#50c864" : "#ff6b6b", fontWeight: 600, marginTop: 10 }}>{smsg.t}</div>}
               </div>
 
@@ -753,33 +739,18 @@ export default function App() {
                 </div>
               )}
 
-              {missing.length > 0 && !sq && (
-                <div style={G.card}>
-                  <h2 style={G.cTitle}>{"⚠️ דגלים חסרים (" + missing.length + ")"}</h2>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                    {missing.map(c => (
-                      <div key={c.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.3)" })}
-                        onClick={() => { setSq(c.name); setStgt(c); setSurl(""); setSurlOk(null); setSmode("url"); }}>
-                        <div style={Object.assign({}, G.thumb, { display: "flex", alignItems: "center", justifyContent: "center" })}>❓</div>
-                        <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{c.name}</span>
-                        <span style={{ color: "#c4a84f", fontSize: "0.8rem" }}>תקן ›</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
           {tab === "add" && (
             <div style={G.card}>
-              <h2 style={G.cTitle}>✏️ הוספה / עדכון עיר</h2>
-              <p style={{ color: "#8fa3c4", fontSize: "0.85rem", margin: "0 0 14px" }}>אם העיר כבר קיימת — הדגל יתעדכן אוטומטית.</p>
+              <h2 style={G.cTitle}>✏️ הוספה ידנית של עיר</h2>
+              <p style={{ color: "#8fa3c4", fontSize: "0.85rem", margin: "0 0 14px" }}>הוספת עיר חדשה בלבד. אם שם העיר כבר קיים, לא יבוצע שינוי.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 14 }}>
                 <div style={{ flex: "0 0 160px" }}>
                   <label style={G.lbl}>שם העיר</label>
-                  <input style={Object.assign({}, G.inp, { marginTop: 5 })} placeholder="למשל: חדרה" value={aname}
-                    onChange={e => setAname(san(e.target.value))} onKeyDown={e => e.key === "Enter" && addOne()} />
+                  <input style={Object.assign({}, G.inp, { marginTop: 5 })} placeholder="למשל: בית שמש" value={aname}
+                    onChange={e => setAname(e.target.value)} onKeyDown={e => e.key === "Enter" && addOne()} />
                 </div>
                 <div style={{ flex: 1, minWidth: 180 }}>
                   <label style={G.lbl}>קישור לדגל</label>
@@ -875,35 +846,6 @@ export default function App() {
                   </button>
                 </div>
               )}
-            </div>
-          )}
-
-          {tab === "manage" && (
-            <div style={G.card}>
-              <h2 style={G.cTitle}>{"🗂️ ערים מותאמות (" + custom.length + ")"}</h2>
-              {custom.length === 0
-                ? <div style={{ color: "#5a7099" }}>לא נוספו ערים עדיין</div>
-                : <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                  {custom.slice().reverse().map(city => (
-                    <div key={city.id} style={G.row}>
-                      {city.urlFlag || city.dataUrl
-                        ? <img src={city.urlFlag || city.dataUrl} alt="" style={G.thumb} onError={e => e.target.style.display = "none"} />
-                        : <div style={Object.assign({}, G.thumb, { display: "flex", alignItems: "center", justifyContent: "center" })}>🏙️</div>
-                      }
-                      <span style={{ fontWeight: 600, color: "#e8ecf4", minWidth: 80 }}>{city.name}</span>
-                      <span style={{ flex: 1, fontSize: "0.7rem", color: "#5a7099" }}>{new Date(city.addedAt).toLocaleDateString("he-IL")}</span>
-                      <span style={{ fontSize: "0.7rem", color: "#5a7099" }}>{stats[city.id] ? (stats[city.id].wins + "/" + stats[city.id].total) : "0/0"}</span>
-                      {dconf === city.id
-                        ? <div style={{ display: "flex", gap: 6 }}>
-                            <button style={G.redBtn} onClick={() => delCity(city.id)}>מחק</button>
-                            <button style={G.ghost} onClick={() => setDconf(null)}>ביטול</button>
-                          </div>
-                        : <button style={{ background: "transparent", border: "none", color: "rgba(255,100,100,.4)", cursor: "pointer", fontSize: "1rem" }} onClick={() => setDconf(city.id)}>🗑️</button>
-                      }
-                    </div>
-                  ))}
-                </div>
-              }
             </div>
           )}
 
