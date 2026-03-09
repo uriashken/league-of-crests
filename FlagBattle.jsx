@@ -1094,7 +1094,10 @@ export default function App() {
       <header style={G.hdr}>
         <h1 style={G.title}>League of Crests</h1>
         <p style={{ margin: "8px 0 0", fontSize: "1rem", color: "#8fa3c4" }}>בואו להכריע מי הישובים עם הסמלים המוצלחים ביותר בישראל</p>
-        <div style={{ marginTop: 10, fontSize: "1.1rem", fontWeight: 700, color: "#c4a84f" }}>{"מספר ההצבעות: " + battles.toLocaleString()}</div>
+        <div style={{ marginTop: 10, display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", fontSize: "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
+          <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
+          <span>{"מספר ערים משתתפות: " + all.filter(c => !failed[c.id]).length}</span>
+        </div>
         <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 14, flexWrap: "wrap" }}>
           {[
             {
