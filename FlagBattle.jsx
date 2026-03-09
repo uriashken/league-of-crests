@@ -64,11 +64,10 @@ function normUrl(raw) {
     if (p.hostname === "upload.wikimedia.org") {
       const parts = p.pathname.split("/");
       const thumbIdx = parts.indexOf("thumb");
-      // thumbnail URLs: .../thumb/a/ab/FILENAME.ext/NNNpx-FILENAME → use FILENAME.ext (not the sized copy)
-      const filename = thumbIdx >= 0 && parts.length > thumbIdx + 3
-        ? parts[thumbIdx + 3]
-        : parts[parts.length - 1];
-      return "https://commons.wikimedia.org/wiki/Special:FilePath/" + filename + "?width=300";
+      // thumbnail URLs (.../thumb/...) are already rendered images — use as-is
+      if (thumbIdx >= 0) return u;
+      // non-thumbnail (e.g. direct SVG) → convert to Special:FilePath PNG
+      return "https://commons.wikimedia.org/wiki/Special:FilePath/" + parts[parts.length - 1] + "?width=300";
     }
     // Special:FilePath redirect → add ?width=300 to force direct PNG response
     if (p.hostname === "commons.wikimedia.org" && p.pathname.includes("Special:FilePath")) {
