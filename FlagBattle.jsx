@@ -327,7 +327,7 @@ export default function App() {
   useEffect(() => { resetIdle(); return () => clearTimeout(idleRef.current); }, [view, resetIdle]);
 
   const pick = useCallback((cities, cur) => {
-    const av = cities.filter(c => !failed[c.id] || c.customOverride || c.custom);
+    const av = cities.filter(c => !failed[c.id]);
     if (av.length < 2) return;
     const one = (excl) => {
       const pool = excl ? av.filter(c => c.id !== excl.id) : av;
@@ -624,8 +624,8 @@ export default function App() {
     return (
       <div style={G.root} dir="rtl" onClick={resetIdle}>
         <div style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
-          {CITIES.filter(c => !ov[c.id]).map(c => (
-            <img key={c.id} src={wikiUrl(c.flag)} alt=""
+          {all.map(c => (
+            <img key={c.id} src={getSrc(c, ov)} alt=""
               onError={() => setFailed(p => Object.assign({}, p, { [c.id]: true }))}
               onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[c.id]; return n; })} />
           ))}
@@ -683,23 +683,31 @@ export default function App() {
             <div>
               <div style={G.card}>
                 <h2 style={G.cTitle}>🔍 עריכת סמלי ערים</h2>
-                {pending.length > 0 && !sq && (
-                  <div style={{ marginBottom: 14 }}>
-                    <div style={{ fontSize: "0.78rem", color: "#ff9966", fontWeight: 700, marginBottom: 6 }}>⏳ ממתינות לקישור סמל ({pending.length})</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                      {pending.map(city => (
-                        <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.5)", background: "rgba(255,140,0,.04)" })}
-                          onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
-                          <div style={{ width: 52, height: 34, flexShrink: 0, background: "rgba(255,255,255,.05)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏙️</div>
-                          <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
-                          <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>חסר קישור</span>
-                          <span style={{ color: "#c4a84f", fontSize: "0.8rem", marginRight: 8 }}>הוסף ›</span>
-                        </div>
-                      ))}
+                {(() => {
+                  const brokenActive = all.filter(c => failed[c.id]);
+                  const waitingList = [
+                    ...pending.map(c => ({ ...c, _reason: "חסר קישור" })),
+                    ...brokenActive.filter(c => !pending.some(p => p.id === c.id)).map(c => ({ ...c, _reason: "קישור שבור" })),
+                  ];
+                  if (!sq && waitingList.length > 0) return (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: "0.78rem", color: "#ff9966", fontWeight: 700, marginBottom: 6 }}>⏳ ממתינות לעדכון סמל ({waitingList.length})</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                        {waitingList.map(city => (
+                          <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.5)", background: "rgba(255,140,0,.04)" })}
+                            onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
+                            <div style={{ width: 52, height: 34, flexShrink: 0, background: "rgba(255,255,255,.05)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏙️</div>
+                            <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
+                            <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>{city._reason}</span>
+                            <span style={{ color: "#c4a84f", fontSize: "0.8rem", marginRight: 8 }}>עדכן ›</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "12px 0" }} />
                     </div>
-                    <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "12px 0" }} />
-                  </div>
-                )}
+                  );
+                  return null;
+                })()}
                 <input style={Object.assign({}, G.inp, { marginBottom: 12 })} placeholder="חיפוש עיר…" value={sq}
                   onChange={e => { setSq(e.target.value); setStgt(null); setSmsg(null); }} />
                 {(() => {
