@@ -450,7 +450,7 @@ export default function App() {
     let url = surl.trim();
     if (smode === "url") {
       if (!url.startsWith("https://")) { setSmsg({ ok: false, t: "URL חייב להתחיל ב-https://" }); return; }
-      if (!surlOk) { setSmsg({ ok: false, t: "הלינק לא נטען" }); return; }
+      if (surlOk !== true) { setSmsg({ ok: false, t: "יש לוודא שהקישור נטען בהצלחה (✅)" }); return; }
     } else {
       if (!sfile) { setSmsg({ ok: false, t: "יש לבחור קובץ" }); return; }
       url = await readF(sfile);
@@ -458,11 +458,20 @@ export default function App() {
     setSsaving(true);
     try {
       const isPending = pending.some(p => p.id === stgt.id);
-      const res = mergeCity(stgt.name, url, custom, ov);
-      await persist(res.cc, res.ov);
+      let newCc, newOv;
+      if (isPending) {
+        // preserve the pending city's existing ID to avoid tracking gaps
+        const newCity = Object.assign({}, stgt, { urlFlag: url, custom: true, addedAt: new Date().toISOString() });
+        newCc = custom.concat([newCity]);
+        newOv = ov;
+      } else {
+        const res = mergeCity(stgt.name, url, custom, ov);
+        newCc = res.cc; newOv = res.ov;
+      }
+      await persist(newCc, newOv);
       if (isPending) {
         const newPend = pending.filter(p => p.id !== stgt.id);
-        await storage.set(KPend, JSON.stringify(newPend), true);
+        await storage.set(KPend, JSON.stringify(newPend));
         setPending(newPend);
       }
       setFailed(p => { const n = Object.assign({}, p); delete n[stgt.id]; return n; });
@@ -769,8 +778,8 @@ export default function App() {
                     </div>
                   )}
                   {smsg && <div style={{ color: smsg.ok ? "#50c864" : "#ff6b6b", fontWeight: 600, marginTop: 8 }}>{smsg.t}</div>}
-                  <button style={Object.assign({}, G.gold, { marginTop: 12, opacity: ssaving ? 0.6 : 1 })} onClick={saveFlag} disabled={ssaving}>
-                    {ssaving ? "שומר…" : "שמור סמל ✓"}
+                  <button style={Object.assign({}, G.gold, { marginTop: 12, opacity: (ssaving || (smode === "url" && surlOk !== true)) ? 0.5 : 1 })} onClick={saveFlag} disabled={ssaving || (smode === "url" && surlOk !== true)}>
+                    {ssaving ? "שומר…" : smode === "url" && surlOk === null && surl.startsWith("http") ? "ממתין לטעינה…" : "שמור סמל ✓"}
                   </button>
                 </div>
               ) : (
