@@ -97,6 +97,8 @@ function wilson(wins, total) {
 }
 
 const ELO_BASE = 0;
+const MIN_BATTLES = 10;
+function confPenalty(total) { return Math.round(3 * ELO_K / Math.sqrt(total + 1)); }
 const ELO_K = 32;
 
 function eloExpected(rA, rB) {
@@ -192,10 +194,11 @@ function mergeCity(name, url, cc, ov) {
   return { cc: cc.concat([nc]), ov };
 }
 
-function CityTooltip({ city, stats, ranked, failed, ov }) {
+function CityTooltip({ city, stats, confirmed, provisional, failed, ov }) {
   if (!city) return null;
   const s = stats[city.id] || { wins: 0, total: 0, elo: ELO_BASE };
-  const rank = ranked.findIndex(c => c.id === city.id) + 1;
+  const isProvisional = (s.total || 0) < MIN_BATTLES;
+  const rank = isProvisional ? -1 : confirmed.findIndex(c => c.id === city.id) + 1;
   const losses = s.total - s.wins;
   const elo = s.elo ?? ELO_BASE;
   return (
@@ -208,7 +211,9 @@ function CityTooltip({ city, stats, ranked, failed, ov }) {
           }
         </div>
         <div style={{ fontSize: "2rem", fontWeight: 900, color: "#f0d88a", marginBottom: 4 }}>{city.name}</div>
-        <div style={{ fontSize: "1rem", color: "#c4a84f", marginBottom: 6 }}>{rank > 0 ? `מקום #${rank} מתוך ${ranked.length}` : "—"}</div>
+        <div style={{ fontSize: "1rem", color: "#c4a84f", marginBottom: 6 }}>
+          {isProvisional ? `בשלב מיון (${s.total}/${MIN_BATTLES} קרבות)` : rank > 0 ? `מקום #${rank} מתוך ${confirmed.length}` : "—"}
+        </div>
         <div style={{ fontSize: "1.3rem", fontWeight: 800, color: elo >= 0 ? "#50c864" : "#ff6b6b", marginBottom: 20 }}>ניקוד: {elo >= 0 ? "+" : ""}{elo}</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 14 }}>
           {[{ l: "קרבות", v: s.total, c: "#8fa3c4" }, { l: "ניצחונות", v: s.wins, c: "#50c864" }, { l: "הפסדים", v: losses, c: "#ff6b6b" }].map(item => (
@@ -551,10 +556,14 @@ export default function App() {
   }
 
 
-  const ranked = all.map(c => {
+  const ranked = all.filter(c => !failed[c.id]).map(c => {
     const s = stats[c.id] || { wins: 0, total: 0, elo: ELO_BASE };
-    return Object.assign({}, c, s, { score: s.elo ?? ELO_BASE });
-  }).sort((a, b) => b.score - a.score || b.total - a.total);
+    const score = s.elo ?? ELO_BASE;
+    const confScore = score - confPenalty(s.total || 0);
+    return Object.assign({}, c, s, { score, confScore });
+  }).sort((a, b) => b.confScore - a.confScore);
+  const confirmed = ranked.filter(c => (c.total || 0) >= MIN_BATTLES);
+  const provisional = ranked.filter(c => (c.total || 0) < MIN_BATTLES);
 
   const missing = CITIES.filter(c => failed[c.id] && !ov[c.id]);
   const sres = sq.trim() ? all.filter(c => c.name.includes(sq.trim())) : [];
@@ -1012,24 +1021,20 @@ export default function App() {
             <h1 style={Object.assign({}, G.title, { fontSize: "1.6rem" })}>🏆 טבלה מלאה</h1>
             <button style={G.ghost} onClick={() => setView("game")}>← חזרה</button>
           </div>
-          <div style={{ textAlign: "center", marginTop: 6, fontSize: "0.8rem", color: "#8fa3c4" }}>{ranked.length} ערים · {battles.toLocaleString()} קרבות</div>
+          <div style={{ textAlign: "center", marginTop: 6, fontSize: "0.8rem", color: "#8fa3c4" }}>{confirmed.length} ערים מדורגות · {provisional.length} במיון · {battles.toLocaleString()} הצבעות</div>
         </header>
         <section style={Object.assign({}, G.lb, { maxWidth: 760, padding: "24px 20px" })}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            {ranked.map((city, i) => {
-              const maxElo = ranked[0]?.score || ELO_BASE;
-              const minElo = Math.min(ranked[ranked.length - 1]?.score ?? ELO_BASE, ELO_BASE - 100);
-              const barPct = maxElo > minElo ? Math.max(4, ((city.score - minElo) / (maxElo - minElo)) * 100) : 4;
-              const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1);
+          {(() => {
+            const maxScore = confirmed[0]?.score || ELO_BASE;
+            const minScore = Math.min(confirmed[confirmed.length - 1]?.score ?? ELO_BASE, ELO_BASE - 100);
+            const renderRow = (city, i, medal) => {
+              const barPct = maxScore > minScore ? Math.max(4, ((city.score - minScore) / (maxScore - minScore)) * 100) : 4;
               return (
-                <div key={city.id} style={Object.assign({}, G.lbrow, i < 3 ? { background: "rgba(196,168,79,.07)", border: "1px solid rgba(196,168,79,.14)" } : {})}>
-                  <span style={{ minWidth: 26, textAlign: "center", color: "#c4a84f" }}>{medal}</span>
+                <div key={city.id} style={Object.assign({}, G.lbrow, medal && i < 3 ? { background: "rgba(196,168,79,.07)", border: "1px solid rgba(196,168,79,.14)" } : {})}>
+                  <span style={{ minWidth: 26, textAlign: "center", color: "#c4a84f" }}>{medal || "·"}</span>
                   <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
-                    {failed[city.id] && !city.customOverride && !city.custom
-                      ? <span style={{ fontSize: 12 }}>🏙️</span>
-                      : <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
-                    }
+                    <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                   </div>
                   <span style={{ minWidth: 88, fontSize: "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
                   <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,.07)", borderRadius: 4, overflow: "hidden" }}>
@@ -1039,10 +1044,23 @@ export default function App() {
                   <span style={{ minWidth: 44, fontSize: "0.71rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
                 </div>
               );
-            })}
-          </div>
+            };
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {confirmed.map((city, i) => renderRow(city, i, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1)))}
+                {provisional.length > 0 && (
+                  <>
+                    <div style={{ margin: "16px 0 8px", fontSize: "0.78rem", color: "#8fa3c4", fontWeight: 700, paddingRight: 4 }}>
+                      ⏳ בשלב מיון — פחות מ-{MIN_BATTLES} קרבות ({provisional.length} ערים)
+                    </div>
+                    {provisional.map((city, i) => renderRow(city, i, null))}
+                  </>
+                )}
+              </div>
+            );
+          })()}
         </section>
-        <CityTooltip city={cityProfile} stats={stats} ranked={ranked} failed={failed} ov={ov} />
+        <CityTooltip city={cityProfile} stats={stats} confirmed={confirmed} provisional={provisional} failed={failed} ov={ov} />
       </div>
     );
   }
@@ -1086,7 +1104,8 @@ export default function App() {
               </ul>
               <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>מה זה אומר בפועל?</strong> עיר שניצחה לדוגמה 7 מתוך 10 פעמים, אבל הפסידה לחלשות, תדורג נמוך יותר מעיר שניצחה 6 מתוך 10 אבל הפסידה רק לחזקות. הדירוג מתגמל איכות ניצחונות, לא רק כמות.</p>
               <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>למה הניקוד יכול לרדת מתחת לאפס?</strong> עיר שמפסידה שוב ושוב, בעיקר לערים חלשות, תצבור ניקוד שלילי. זה פשוט משקף שהסמל שלה פחות ״נחשב״ מהממוצע.</p>
-              <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>מה קורה עם ערים שמצטרפות מאוחר?</strong> ערים שמתווספות לאחר שהמערכת כבר פעילה מתחילות עם ניקוד 0 — בדיוק כמו כולם בתחילת הדרך. אבל יותר מכך: האלגוריתם מעדיף להציג ערים שהשתתפו במעט קרבות, כדי לתת להן הזדמנות להצטבר מהר. ככל שלעיר יש פחות קרבות, כך גדל הסיכוי שהיא תיבחר לסבב הבא — עד שמספר ההצבעות שלה מתאזן עם שאר הערים.</p>
+              <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>מה קורה עם ערים שמצטרפות מאוחר?</strong> ערים שמתווספות לאחר שהמערכת כבר פעילה מתחילות עם ניקוד 0. האלגוריתם נותן עדיפות בבחירה לקרבות לערים שהשתתפו במעט קרבות, כדי לאפשר להן להצטבר מהר ולהדביק את הפער.</p>
+              <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>איך מטפלים בשיוויון בין ערים?</strong> שני מנגנונים פועלים יחד. ראשית, עיר נכנסת לדירוג הרשמי רק לאחר שהשתתפה בלפחות {MIN_BATTLES} קרבות — עד אז היא מסומנת "בשלב מיון" ולא מקבלת מספר מיקום. שנית, הניקוד לצורך מיון מתחשב ב<em>רמת הביטחון</em> בו: ניקוד של עיר שהוכיח את עצמו במאות קרבות נחשב אמין יותר מניקוד זהה של עיר שרק התחילה. המשמעות — עיר שניצחה 50% מ-200 קרבות תמיד תדורג מעל עיר שניצחה 50% מ-3 קרבות, גם אם הניקוד הגולמי שלהן זהה.</p>
               <p style={{ margin: 0, color: "#8fa3c4", fontSize: "0.85rem" }}>הדירוג מתעדכן בזמן אמת לאחר כל הצבעה, וגדל ומשתפר ככל שיותר אנשים משתתפים.</p>
             </div>
           </div>
@@ -1198,9 +1217,9 @@ export default function App() {
             onClick={() => setView("leaderboard")}>טבלה מלאה</button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-          {ranked.slice(0, 10).map((city, i) => {
-            const maxElo = ranked[0]?.score || ELO_BASE;
-            const minElo = Math.min(ranked[ranked.length - 1]?.score ?? ELO_BASE, ELO_BASE - 100);
+          {confirmed.slice(0, 10).map((city, i) => {
+            const maxElo = confirmed[0]?.score || ELO_BASE;
+            const minElo = Math.min(confirmed[confirmed.length - 1]?.score ?? ELO_BASE, ELO_BASE - 100);
             const barPct = maxElo > minElo ? Math.max(4, ((city.score - minElo) / (maxElo - minElo)) * 100) : 4;
             const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1);
             return (
@@ -1208,10 +1227,7 @@ export default function App() {
                 <span style={{ minWidth: 26, textAlign: "center", color: "#c4a84f" }}>{medal}</span>
                 <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                   onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
-                  {failed[city.id] && !city.customOverride && !city.custom
-                    ? <span style={{ fontSize: 12 }}>🏙️</span>
-                    : <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
-                  }
+                  <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                 </div>
                 <span style={{ minWidth: 88, fontSize: "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
                 <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,.07)", borderRadius: 4, overflow: "hidden" }}>
@@ -1289,7 +1305,7 @@ export default function App() {
           onClick={() => setShowLogin(true)}>⚙️ אדמין</button>
       </footer>
 
-      <CityTooltip city={cityProfile} stats={stats} ranked={ranked} failed={failed} ov={ov} />
+      <CityTooltip city={cityProfile} stats={stats} confirmed={confirmed} provisional={provisional} failed={failed} ov={ov} />
     </div>
   );
 }
