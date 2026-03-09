@@ -1221,36 +1221,65 @@ export default function App() {
         )}
       </section>
 
-      <section style={G.lb}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "#c4a84f" }}>🏆 טבלת המובילים</h2>
-          <button style={{ background: "transparent", border: "1px solid rgba(196,168,79,.3)", color: "#c4a84f", borderRadius: 8, padding: "5px 11px", fontSize: "0.76rem", cursor: "pointer" }}
-            onClick={() => setView("leaderboard")}>טבלה מלאה</button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-          {confirmed.slice(0, 10).map((city, i) => {
-            const maxElo = confirmed[0]?.score || ELO_BASE;
-            const minElo = Math.min(confirmed[confirmed.length - 1]?.score ?? ELO_BASE, ELO_BASE - 100);
-            const barPct = maxElo > minElo ? Math.max(4, ((city.score - minElo) / (maxElo - minElo)) * 100) : 4;
-            const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1);
-            return (
-              <div key={city.id} style={Object.assign({}, G.lbrow, i < 3 ? { background: "rgba(196,168,79,.07)", border: "1px solid rgba(196,168,79,.14)" } : {})}>
-                <span style={{ minWidth: 26, textAlign: "center", color: "#c4a84f" }}>{medal}</span>
+      {confirmed.length > 0 && (
+        <section style={G.lb}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+            <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "#c4a84f" }}>🏆 הערים המובילות</h2>
+            <button style={{ background: "transparent", border: "1px solid rgba(196,168,79,.3)", color: "#c4a84f", borderRadius: 8, padding: "5px 11px", fontSize: "0.76rem", cursor: "pointer" }}
+              onClick={() => setView("leaderboard")}>הצג טבלה מלאה</button>
+          </div>
+          <div style={{ fontSize: "0.72rem", color: "#5a7099", marginBottom: 12 }}>ערים שהשתתפו בלמעלה מ-{MIN_BATTLES} קרבות</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            {confirmed.slice(0, 10).map((city, i) => {
+              const maxElo = confirmed[0]?.score || ELO_BASE;
+              const minElo = Math.min(confirmed[confirmed.length - 1]?.score ?? ELO_BASE, ELO_BASE - 100);
+              const barPct = maxElo > minElo ? Math.max(4, ((city.score - minElo) / (maxElo - minElo)) * 100) : 4;
+              const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1);
+              return (
+                <div key={city.id} style={Object.assign({}, G.lbrow, i < 3 ? { background: "rgba(196,168,79,.07)", border: "1px solid rgba(196,168,79,.14)" } : {})}>
+                  <span style={{ minWidth: 26, textAlign: "center", color: "#c4a84f" }}>{medal}</span>
+                  <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
+                    onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
+                    <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
+                  </div>
+                  <span style={{ minWidth: 88, fontSize: "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
+                  <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,.07)", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={Object.assign({}, G.lbbar, { width: barPct + "%", opacity: city.total > 0 ? 1 : 0.15 })} />
+                  </div>
+                  <span style={{ minWidth: 44, fontSize: "0.81rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
+                  <span style={{ minWidth: 44, fontSize: "0.71rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {provisional.length > 0 && (
+        <section style={G.lb}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+            <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "#8fa3c4" }}>⏳ ערים בשלבי מיון</h2>
+            <button style={{ background: "transparent", border: "1px solid rgba(143,163,196,.3)", color: "#8fa3c4", borderRadius: 8, padding: "5px 11px", fontSize: "0.76rem", cursor: "pointer" }}
+              onClick={() => setView("leaderboard")}>הצג טבלה מלאה</button>
+          </div>
+          <div style={{ fontSize: "0.72rem", color: "#5a7099", marginBottom: 12 }}>ערים עם פחות מ-{MIN_BATTLES} קרבות</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            {provisional.slice(0, 10).map((city, i) => (
+              <div key={city.id} style={G.lbrow}>
+                <span style={{ minWidth: 26, textAlign: "center", color: "#8fa3c4" }}>{i + 1}</span>
                 <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                   onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
                   <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                 </div>
                 <span style={{ minWidth: 88, fontSize: "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
-                <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,.07)", borderRadius: 4, overflow: "hidden" }}>
-                  <div style={Object.assign({}, G.lbbar, { width: barPct + "%", opacity: city.total > 0 ? 1 : 0.15 })} />
-                </div>
-                <span style={{ minWidth: 44, fontSize: "0.81rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.total > 0 ? city.score : "—"}</span>
+                <div style={{ flex: 1 }} />
+                <span style={{ minWidth: 44, fontSize: "0.81rem", color: "#8fa3c4", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
                 <span style={{ minWidth: 44, fontSize: "0.71rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
               </div>
-            );
-          })}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section style={{ maxWidth: 700, margin: "0 auto", padding: "0 20px 32px" }}>
         <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: "20px 22px" }}>
