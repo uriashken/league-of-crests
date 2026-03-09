@@ -248,6 +248,7 @@ export default function App() {
   const [showFull, setShowFull] = useState(false);
   const [failed, setFailed] = useState({});
   const [loading, setLoading] = useState(true);
+  const [preloadReady, setPreloadReady] = useState(false);
   const [dims, setDims] = useState({});
   const [cityProfile, setCityProfile] = useState(null);
 
@@ -348,7 +349,14 @@ export default function App() {
     setPair([a, b]); setDims({});
   }, [failed]);
 
-  useEffect(() => { if (!loading) pick(all, null); }, [loading]);
+  useEffect(() => {
+    if (!loading) {
+      const t = setTimeout(() => setPreloadReady(true), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [loading]);
+
+  useEffect(() => { if (preloadReady) pick(all, null); }, [preloadReady]);
 
   const vote = useCallback(async (wid, lid) => {
     if (voted || anim.current) return;
@@ -1118,8 +1126,8 @@ export default function App() {
   return (
     <div style={G.root} dir="rtl">
       <div style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
-        {CITIES.filter(c => !ov[c.id]).map(c => (
-          <img key={c.id} src={wikiUrl(c.flag)} alt=""
+        {all.map(c => (
+          <img key={c.id} src={getSrc(c, ov)} alt=""
             onError={() => setFailed(p => Object.assign({}, p, { [c.id]: true }))}
             onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[c.id]; return n; })} />
         ))}
@@ -1188,11 +1196,14 @@ export default function App() {
                   style={Object.assign({}, G.fcard, isW ? G.fcardW : {}, isL ? G.fcardL : {})}
                   onClick={() => vote(city.id, pair[1 - idx].id)} disabled={!!voted}>
                   <div style={G.fwrap}>
-                    {(failed[city.id] && !city.customOverride && !city.custom)
+                    {failed[city.id]
                       ? <div style={{ fontSize: 50, opacity: 0.3 }}>🏙️</div>
                       : <img src={getSrc(city, ov)} alt={city.name}
                           style={G.fimg}
-                          onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
+                          onError={() => {
+                            setFailed(p => Object.assign({}, p, { [city.id]: true }));
+                            setTimeout(() => pick(all, null), 100);
+                          }} />
                     }
                     {isW && <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(80,200,100,.9)", color: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>✓ ניצח!</div>}
                   </div>
