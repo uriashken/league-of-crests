@@ -49,6 +49,7 @@ const KC = "il_custom_flags_v2";
 const KO = "il_flag_overrides_v1";
 const KP = "il_admin_pass_hash_v1";
 const KR = "il_flag_requests_v1";
+const KPend = "il_flag_pending_v1";
 
 
 function wikiUrl(f) {
@@ -235,6 +236,7 @@ export default function App() {
   const [stats, setStats] = useState({});
   const [battles, setBattles] = useState(0);
   const [custom, setCustom] = useState([]);
+  const [pending, setPending] = useState([]);
   const [ov, setOv] = useState({});
   const [pair, setPair] = useState(null);
   const [voted, setVoted] = useState(null);
@@ -305,6 +307,7 @@ export default function App() {
       try { const r = await storage.get(KC, true).catch(() => null); if (r && r.value) setCustom(JSON.parse(r.value)); } catch (e) {}
       try { const r = await storage.get(KO, true).catch(() => null); if (r && r.value) setOv(JSON.parse(r.value)); } catch (e) {}
       try { const r = await storage.get(KR, true).catch(() => null); if (r && r.value) setRequests(JSON.parse(r.value)); } catch (e) {}
+      try { const r = await storage.get(KPend, true).catch(() => null); if (r && r.value) setPending(JSON.parse(r.value)); } catch (e) {}
       try {
         const r = await storage.get(KP, true).catch(() => null);
         if (r && r.value) setPassHash(r.value);
@@ -430,10 +433,16 @@ export default function App() {
     }
     setSsaving(true);
     try {
+      const isPending = pending.some(p => p.id === stgt.id);
       const res = mergeCity(stgt.name, url, custom, ov);
       await persist(res.cc, res.ov);
+      if (isPending) {
+        const newPend = pending.filter(p => p.id !== stgt.id);
+        await storage.set(KPend, JSON.stringify(newPend), true);
+        setPending(newPend);
+      }
       setFailed(p => { const n = Object.assign({}, p); delete n[stgt.id]; return n; });
-      setSmsg({ ok: true, t: "דגל " + stgt.name + " עודכן!" });
+      setSmsg({ ok: true, t: "סמל " + stgt.name + " עודכן!" + (isPending ? " העיר נוספה לקרבות." : "") });
       setStgt(null); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null);
       setTimeout(() => setSmsg(null), 3000);
     } catch (e) { setSmsg({ ok: false, t: "שגיאה: " + e.message }); }
@@ -473,21 +482,30 @@ export default function App() {
   async function doImport() {
     if (!irows || !incol || !iucol) { setImsg({ ok: false, t: "בחר עמודות" }); return; }
     setIimporting(true);
-    let cc = custom.slice(), curOv = Object.assign({}, ov), upd = 0, skip = 0;
+    let cc = custom.slice(), curOv = Object.assign({}, ov), pend = pending.slice(), upd = 0, pendUpd = 0, skip = 0;
     for (let i = 0; i < irows.length; i++) {
       const row = irows[i];
       const name = san(String(row[incol] || "").trim());
+      if (!name) { skip++; continue; }
+      const existsActive = CITIES.some(c => c.name === name) || cc.some(c => c.name === name);
+      const existsPend = pend.some(c => c.name === name);
+      if (existsActive || existsPend) { skip++; continue; }
       let url = String(row[iucol] || "").trim();
-      if (!name || !url.startsWith("http")) { skip++; continue; }
-      const exists = CITIES.some(c => c.name === name) || cc.some(c => c.name === name);
-      if (exists) { skip++; continue; }
-      if (isWikiMediaUrl(url)) url = await resolveWikiUrl(url);
-      const nc = { id: "c-"+slug(name)+"-"+Date.now(), name, urlFlag: url, custom: true, addedAt: new Date().toISOString() };
-      cc = cc.concat([nc]);
-      upd++;
+      if (url.startsWith("http")) {
+        if (isWikiMediaUrl(url)) url = await resolveWikiUrl(url);
+        const nc = { id: "c-"+slug(name)+"-"+Date.now(), name, urlFlag: url, custom: true, addedAt: new Date().toISOString() };
+        cc = cc.concat([nc]);
+        upd++;
+      } else {
+        pend = pend.concat([{ id: "p-"+slug(name)+"-"+Date.now(), name, addedAt: new Date().toISOString() }]);
+        pendUpd++;
+      }
     }
     await persist(cc, curOv);
-    setImsg({ ok: true, t: "נוספו " + upd + " ערים חדשות" + (skip ? " · " + skip + " דולגו (קיימות או ללא קישור)" : "") });
+    await storage.set(KPend, JSON.stringify(pend), true);
+    setPending(pend);
+    const msg = [upd ? upd + " ערים נוספו לקרבות" : "", pendUpd ? pendUpd + " ערים נוספו לרשימת המתנה (חסר קישור)" : "", skip ? skip + " דולגו (קיימות)" : ""].filter(Boolean).join(" · ");
+    setImsg({ ok: true, t: msg || "אין חדש" });
     setIfile(null); setIrows(null); setIcols(null); setIprev([]);
     if (ifRef.current) ifRef.current.value = "";
     setIimporting(false);
@@ -665,11 +683,28 @@ export default function App() {
             <div>
               <div style={G.card}>
                 <h2 style={G.cTitle}>🔍 עריכת סמלי ערים</h2>
+                {pending.length > 0 && !sq && (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: "0.78rem", color: "#ff9966", fontWeight: 700, marginBottom: 6 }}>⏳ ממתינות לקישור סמל ({pending.length})</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                      {pending.map(city => (
+                        <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.5)", background: "rgba(255,140,0,.04)" })}
+                          onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
+                          <div style={{ width: 52, height: 34, flexShrink: 0, background: "rgba(255,255,255,.05)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏙️</div>
+                          <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
+                          <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>חסר קישור</span>
+                          <span style={{ color: "#c4a84f", fontSize: "0.8rem", marginRight: 8 }}>הוסף ›</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "12px 0" }} />
+                  </div>
+                )}
                 <input style={Object.assign({}, G.inp, { marginBottom: 12 })} placeholder="חיפוש עיר…" value={sq}
                   onChange={e => { setSq(e.target.value); setStgt(null); setSmsg(null); }} />
                 {(() => {
                   const q = sq.trim();
-                  const list = q ? all.filter(c => c.name.includes(q)) : all.slice().sort((a, b) => {
+                  const list = q ? [...pending.filter(c => c.name.includes(q)), ...all.filter(c => c.name.includes(q))] : all.slice().sort((a, b) => {
                     const ab = !!failed[a.id], bb = !!failed[b.id];
                     if (ab !== bb) return ab ? -1 : 1;
                     return a.name.localeCompare(b.name, "he");
