@@ -707,7 +707,7 @@ export default function App() {
       <div style={G.root} dir="rtl" onClick={resetIdle}>
         <div style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
           {all.map(c => (
-            <img key={c.id} src={getSrc(c, ov)} alt=""
+            <img key={c.id + "|" + getSrc(c, ov)} src={getSrc(c, ov)} alt=""
               onError={() => setFailed(p => Object.assign({}, p, { [c.id]: true }))}
               onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[c.id]; return n; })} />
           ))}
@@ -1193,7 +1193,7 @@ export default function App() {
     <div style={G.root} dir="rtl">
       <div style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
         {all.map(c => (
-          <img key={c.id} src={getSrc(c, ov)} alt=""
+          <img key={c.id + "|" + getSrc(c, ov)} src={getSrc(c, ov)} alt=""
             onError={() => setFailed(p => Object.assign({}, p, { [c.id]: true }))}
             onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[c.id]; return n; })} />
         ))}
