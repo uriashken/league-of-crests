@@ -1182,6 +1182,17 @@ export default function App() {
             <p style={{ marginBottom: 0, marginTop: 20, color: "#8fa3c4" }}>אשמח לשמוע כל פידבק שיש לכם, הערה או הצעה לסמלים שפספסתי וצריכים להיות כאן.</p>
           </div>
 
+          <div style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 16, padding: "32px 28px", marginBottom: 24, lineHeight: 1.9, fontSize: "0.95rem", color: "#c8d4e8" }}>
+            <p style={{ marginTop: 0 }}>אז איך בכלל אפשר לקבוע אם סמל של עיר הוא ״טוב״ או לא? הנה 5 עקרונות שניסחה <strong style={{ color: "#f0d88a" }}>NAVA</strong> (North American Vexillological Association):</p>
+            <ol style={{ paddingRight: 20, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+              <li><strong style={{ color: "#e8ecf4" }}>שמירה על פשטות:</strong> הסמל צריך להיות כל כך פשוט שילד יוכל לצייר אותו מהזיכרון.</li>
+              <li><strong style={{ color: "#e8ecf4" }}>סמליות משמעותית:</strong> הצבעים והצורות צריכים לייצג משהו שקשור לעיר, להיסטוריה או התרבות שלה.</li>
+              <li><strong style={{ color: "#e8ecf4" }}>שימוש ב-2 עד 3 צבעים בסיסיים:</strong> רצוי להשתמש בסט צבעים סטנדרטי (אדום, כחול, לבן וכו׳).</li>
+              <li><strong style={{ color: "#e8ecf4" }}>ללא כיתוב:</strong> אין להשתמש בטקסטים. זה סמל. אם צריך לכתוב משהו, סימן שהסמליות נכשלה.</li>
+              <li><strong style={{ color: "#e8ecf4" }}>ייחודיות:</strong> הסמל צריך להיות שונה ובולט מסמלים אחרים.</li>
+            </ol>
+          </div>
+
           <div style={{ background: "rgba(196,168,79,.06)", border: "1px solid rgba(196,168,79,.2)", borderRadius: 16, padding: "32px 28px" }}>
             <h2 style={{ margin: "0 0 20px", fontSize: "1.2rem", fontWeight: 800, color: "#c4a84f" }}>איך מתבצע דירוג הסמלים?</h2>
             <div style={{ lineHeight: 1.9, fontSize: "0.95rem", color: "#c8d4e8", display: "flex", flexDirection: "column", gap: 16 }}>
