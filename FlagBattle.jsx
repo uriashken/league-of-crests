@@ -262,6 +262,7 @@ export default function App() {
   const [smode, setSmode] = useState("url");
   const [ssaving, setSsaving] = useState(false);
   const [smsg, setSmsg] = useState(null);
+  const [sdelConf, setSdelConf] = useState(false);
 
   const [aname, setAname] = useState("");
   const [aurl, setAurl] = useState("");
@@ -557,6 +558,24 @@ export default function App() {
     setCustom(u); setDconf(null);
   }
 
+  async function deleteStgt() {
+    if (!stgt) return;
+    assertSession();
+    const isPending = pending.some(p => p.id === stgt.id);
+    const isCustom = custom.some(c => c.id === stgt.id);
+    if (isPending) {
+      const newPend = pending.filter(p => p.id !== stgt.id);
+      await storage.set(KPend, JSON.stringify(newPend));
+      setPending(newPend);
+    } else if (isCustom) {
+      const newCc = custom.filter(c => c.id !== stgt.id);
+      await storage.set(KC, JSON.stringify(newCc));
+      setCustom(newCc);
+    }
+    setFailed(p => { const n = Object.assign({}, p); delete n[stgt.id]; return n; });
+    setStgt(null); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSdelConf(false); setSmsg(null);
+  }
+
   async function changePw() {
     if ((await hashStr(pwc)) !== passHash) { setPwmsg({ ok: false, t: "הסיסמה הנוכחית שגויה" }); return; }
     if (pwn.length < 4) { setPwmsg({ ok: false, t: "מינימום 4 תווים" }); return; }
@@ -727,7 +746,7 @@ export default function App() {
             <div style={G.card}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                 <h2 style={Object.assign({}, G.cTitle, { margin: 0, flex: 1 })}>🔍 עריכת סמלי ערים</h2>
-                {stgt && <button style={Object.assign({}, G.ghost, { padding: "4px 12px", fontSize: "0.76rem" })} onClick={() => { setStgt(null); setSmsg(null); }}>← חזרה לרשימה</button>}
+                {stgt && <button style={Object.assign({}, G.ghost, { padding: "4px 12px", fontSize: "0.76rem" })} onClick={() => { setStgt(null); setSmsg(null); setSdelConf(false); }}>← חזרה לרשימה</button>}
               </div>
 
               {stgt ? (
@@ -781,6 +800,25 @@ export default function App() {
                   <button style={Object.assign({}, G.gold, { marginTop: 12, opacity: (ssaving || (smode === "url" && surlOk !== true)) ? 0.5 : 1 })} onClick={saveFlag} disabled={ssaving || (smode === "url" && surlOk !== true)}>
                     {ssaving ? "שומר…" : smode === "url" && surlOk === null && surl.startsWith("http") ? "ממתין לטעינה…" : "שמור סמל ✓"}
                   </button>
+                  {(() => {
+                    const isPending = pending.some(p => p.id === stgt.id);
+                    const isCustom = custom.some(c => c.id === stgt.id);
+                    const canDelete = isPending || isCustom;
+                    if (!canDelete) return <div style={{ color: "#5a7099", fontSize: "0.78rem", marginTop: 10 }}>עיר מובנית — לא ניתן למחוק</div>;
+                    return sdelConf ? (
+                      <div style={{ marginTop: 12, background: "rgba(255,80,80,.08)", border: "1px solid rgba(255,80,80,.25)", borderRadius: 8, padding: "10px 14px" }}>
+                        <div style={{ color: "#ff8080", fontSize: "0.85rem", marginBottom: 8 }}>למחוק את <strong>{stgt.name}</strong> לצמיתות?</div>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button style={{ flex: 1, background: "#c0392b", border: "none", borderRadius: 7, color: "#fff", padding: "7px 0", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }} onClick={deleteStgt}>מחק ✕</button>
+                          <button style={Object.assign({}, G.ghost, { flex: 1, padding: "7px 0" })} onClick={() => setSdelConf(false)}>ביטול</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button style={{ marginTop: 10, background: "transparent", border: "1px solid rgba(255,80,80,.35)", borderRadius: 7, color: "#ff8080", padding: "6px 16px", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", width: "100%" }} onClick={() => setSdelConf(true)}>
+                        🗑 מחק עיר
+                      </button>
+                    );
+                  })()}
                 </div>
               ) : (
                 <>
@@ -801,7 +839,7 @@ export default function App() {
                         <div style={{ display: "flex", flexDirection: "column", gap: 5, maxHeight: 260, overflowY: "auto" }}>
                           {filtered.map(city => (
                             <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.5)", background: "rgba(255,140,0,.04)" })}
-                              onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
+                              onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); setSdelConf(false); }}>
                               <div style={{ width: 52, height: 34, flexShrink: 0, background: "rgba(255,255,255,.05)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏙️</div>
                               <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
                               <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>{city._reason}</span>
@@ -830,7 +868,7 @@ export default function App() {
                           const isBad = !!failed[city.id];
                           return (
                             <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer" }, isBad ? { borderColor: "rgba(255,140,0,.4)" } : {})}
-                              onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
+                              onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); setSdelConf(false); }}>
                               <div style={{ width: 52, height: 34, flexShrink: 0, background: "#fff", borderRadius: 4, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }}
                                   onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))}
