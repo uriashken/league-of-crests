@@ -482,32 +482,39 @@ export default function App() {
   async function doImport() {
     if (!irows || !incol || !iucol) { setImsg({ ok: false, t: "בחר עמודות" }); return; }
     setIimporting(true);
-    let cc = custom.slice(), curOv = Object.assign({}, ov), pend = pending.slice(), upd = 0, pendUpd = 0, skip = 0;
-    for (let i = 0; i < irows.length; i++) {
-      const row = irows[i];
-      const name = san(String(row[incol] || "").trim());
-      if (!name) { skip++; continue; }
-      const existsActive = CITIES.some(c => c.name === name) || cc.some(c => c.name === name);
-      const existsPend = pend.some(c => c.name === name);
-      if (existsActive || existsPend) { skip++; continue; }
-      let url = String(row[iucol] || "").trim();
-      if (url.startsWith("http")) {
-        if (isWikiMediaUrl(url)) url = await resolveWikiUrl(url);
-        const nc = { id: "c-"+slug(name)+"-"+Date.now(), name, urlFlag: url, custom: true, addedAt: new Date().toISOString() };
-        cc = cc.concat([nc]);
-        upd++;
-      } else {
-        pend = pend.concat([{ id: "p-"+slug(name)+"-"+Date.now(), name, addedAt: new Date().toISOString() }]);
-        pendUpd++;
+    try {
+      const cc = custom.slice();
+      const pend = pending.slice();
+      const activeNames = new Set([...CITIES.map(c => c.name), ...cc.map(c => c.name)]);
+      const pendNames = new Set(pend.map(c => c.name));
+      const ts = Date.now();
+      let upd = 0, pendUpd = 0, skip = 0;
+      for (let i = 0; i < irows.length; i++) {
+        const row = irows[i];
+        const name = san(String(row[incol] || "").trim());
+        if (!name) { skip++; continue; }
+        if (activeNames.has(name) || pendNames.has(name)) { skip++; continue; }
+        const url = String(row[iucol] || "").trim();
+        if (url.startsWith("http")) {
+          cc.push({ id: "c-" + slug(name) + "-" + (ts + i), name, urlFlag: url, custom: true, addedAt: new Date().toISOString() });
+          activeNames.add(name);
+          upd++;
+        } else {
+          pend.push({ id: "p-" + slug(name) + "-" + (ts + i), name, addedAt: new Date().toISOString() });
+          pendNames.add(name);
+          pendUpd++;
+        }
       }
+      await persist(cc, ov);
+      await storage.set(KPend, JSON.stringify(pend));
+      setPending(pend);
+      const msg = [upd ? upd + " ערים נוספו לקרבות" : "", pendUpd ? pendUpd + " ערים נוספו לרשימת המתנה (חסר קישור)" : "", skip ? skip + " דולגו (קיימות)" : ""].filter(Boolean).join(" · ");
+      setImsg({ ok: true, t: msg || "אין חדש" });
+      setIfile(null); setIrows(null); setIcols(null); setIprev([]);
+      if (ifRef.current) ifRef.current.value = "";
+    } catch (e) {
+      setImsg({ ok: false, t: "שגיאה בייבוא: " + e.message });
     }
-    await persist(cc, curOv);
-    await storage.set(KPend, JSON.stringify(pend), true);
-    setPending(pend);
-    const msg = [upd ? upd + " ערים נוספו לקרבות" : "", pendUpd ? pendUpd + " ערים נוספו לרשימת המתנה (חסר קישור)" : "", skip ? skip + " דולגו (קיימות)" : ""].filter(Boolean).join(" · ");
-    setImsg({ ok: true, t: msg || "אין חדש" });
-    setIfile(null); setIrows(null); setIcols(null); setIprev([]);
-    if (ifRef.current) ifRef.current.value = "";
     setIimporting(false);
   }
 
@@ -685,15 +692,20 @@ export default function App() {
                 <h2 style={G.cTitle}>🔍 עריכת סמלי ערים</h2>
                 {(() => {
                   const brokenActive = all.filter(c => failed[c.id]);
+                  const brokenIds = new Set(pending.map(p => p.id));
                   const waitingList = [
                     ...pending.map(c => ({ ...c, _reason: "חסר קישור" })),
-                    ...brokenActive.filter(c => !pending.some(p => p.id === c.id)).map(c => ({ ...c, _reason: "קישור שבור" })),
+                    ...brokenActive.filter(c => !brokenIds.has(c.id)).map(c => ({ ...c, _reason: "קישור שבור" })),
                   ];
-                  if (!sq && waitingList.length > 0) return (
+                  const filtered = sq.trim() ? waitingList.filter(c => c.name.includes(sq.trim())) : waitingList;
+                  if (filtered.length === 0) return null;
+                  return (
                     <div style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: "0.78rem", color: "#ff9966", fontWeight: 700, marginBottom: 6 }}>⏳ ממתינות לעדכון סמל ({waitingList.length})</div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                        {waitingList.map(city => (
+                      <div style={{ fontSize: "0.78rem", color: "#ff9966", fontWeight: 700, marginBottom: 6 }}>
+                        ⏳ ממתינות לעדכון סמל ({waitingList.length}){sq.trim() ? " · " + filtered.length + " תוצאות" : ""}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5, maxHeight: 300, overflowY: "auto" }}>
+                        {filtered.map(city => (
                           <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.5)", background: "rgba(255,140,0,.04)" })}
                             onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
                             <div style={{ width: 52, height: 34, flexShrink: 0, background: "rgba(255,255,255,.05)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏙️</div>
@@ -706,7 +718,6 @@ export default function App() {
                       <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "12px 0" }} />
                     </div>
                   );
-                  return null;
                 })()}
                 <input style={Object.assign({}, G.inp, { marginBottom: 12 })} placeholder="חיפוש עיר…" value={sq}
                   onChange={e => { setSq(e.target.value); setStgt(null); setSmsg(null); }} />

@@ -18,7 +18,9 @@ export const storage = {
     try {
       const snap = await getDoc(doc(db, "appData", key));
       if (snap.exists()) return { value: snap.data().value };
-      return null;
+      // Firestore doc doesn't exist — fall back to localStorage
+      const local = localStorage.getItem(key);
+      return local ? { value: local } : null;
     } catch (e) {
       const local = localStorage.getItem(key);
       return local ? { value: local } : null;
