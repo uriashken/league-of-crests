@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { storage } from "./src/firebase.js";
 
 const CITIES = [
   { id: "tel-aviv", name: "תל אביב", flag: "Flag_of_Tel_Aviv.svg" },
@@ -49,10 +50,6 @@ const KO = "il_flag_overrides_v1";
 const KP = "il_admin_pass_hash_v1";
 const KR = "il_flag_requests_v1";
 
-const storage = window.storage || {
-  get: (key) => Promise.resolve(localStorage.getItem(key) ? { value: localStorage.getItem(key) } : null),
-  set: (key, value) => { localStorage.setItem(key, value); return Promise.resolve(); },
-};
 
 function wikiUrl(f) {
   return "https://commons.wikimedia.org/wiki/Special:FilePath/" + f;
