@@ -250,6 +250,7 @@ export default function App() {
   const [pair, setPair] = useState(null);
   const [voted, setVoted] = useState(null);
   const [showFull, setShowFull] = useState(false);
+  const [lbSearch, setLbSearch] = useState("");
   const [failed, setFailed] = useState({});
   const [loading, setLoading] = useState(true);
   const [preloadReady, setPreloadReady] = useState(false);
@@ -1103,22 +1104,31 @@ export default function App() {
           <div style={{ textAlign: "center", marginTop: 6, fontSize: "0.8rem", color: "#8fa3c4" }}>{confirmed.length} ערים מדורגות · {provisional.length} במיון · {battles.toLocaleString()} הצבעות</div>
         </header>
         <section style={Object.assign({}, G.lb, { maxWidth: 760, padding: "24px 20px" })}>
+          <input
+            style={Object.assign({}, G.inp, { marginBottom: 16, fontSize: "0.9rem" })}
+            placeholder="חיפוש עיר…"
+            value={lbSearch}
+            onChange={e => setLbSearch(e.target.value)}
+          />
           {(() => {
+            const q = lbSearch.trim();
+            const filtConf = q ? confirmed.filter(c => c.name.includes(q)) : confirmed;
+            const filtProv = q ? provisional.filter(c => c.name.includes(q)) : provisional;
             const maxScore = confirmed[0]?.score || ELO_BASE;
             const minScore = Math.min(confirmed[confirmed.length - 1]?.score ?? ELO_BASE, ELO_BASE - 100);
             const renderRow = (city, i, medal) => {
               const barPct = maxScore > minScore ? Math.max(4, ((city.score - minScore) / (maxScore - minScore)) * 100) : 4;
               return (
-                <div key={city.id} style={Object.assign({}, G.lbrow, medal && i < 3 ? { background: "rgba(196,168,79,.07)", border: "1px solid rgba(196,168,79,.14)" } : {})}>
+                <div key={city.id} style={Object.assign({}, G.lbrow, medal && i < 3 && !q ? { background: "rgba(196,168,79,.07)", border: "1px solid rgba(196,168,79,.14)" } : {})}>
                   <span style={{ minWidth: 26, textAlign: "center", color: "#c4a84f" }}>{medal || "·"}</span>
                   <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
                     <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                   </div>
-                  <span style={{ minWidth: 88, fontSize: "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
-                  <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,.07)", borderRadius: 4, overflow: "hidden" }}>
+                  <span style={{ flex: 1, fontSize: "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
+                  {!mob && <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,.07)", borderRadius: 4, overflow: "hidden" }}>
                     <div style={Object.assign({}, G.lbbar, { width: barPct + "%", opacity: city.total > 0 ? 1 : 0.15 })} />
-                  </div>
+                  </div>}
                   <span style={{ minWidth: 44, fontSize: "0.81rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.total > 0 ? city.score : "—"}</span>
                   <span style={{ minWidth: 44, fontSize: "0.71rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
                 </div>
@@ -1126,13 +1136,16 @@ export default function App() {
             };
             return (
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                {confirmed.map((city, i) => renderRow(city, i, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1)))}
-                {provisional.length > 0 && (
+                {filtConf.length === 0 && filtProv.length === 0 && (
+                  <div style={{ color: "#5a7099", fontSize: "0.85rem", textAlign: "center", padding: "20px 0" }}>לא נמצאה עיר</div>
+                )}
+                {filtConf.map((city, i) => renderRow(city, i, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1)))}
+                {filtProv.length > 0 && (
                   <>
                     <div style={{ margin: "16px 0 8px", fontSize: "0.78rem", color: "#8fa3c4", fontWeight: 700, paddingRight: 4 }}>
-                      ⏳ בשלב מיון — פחות מ-{MIN_BATTLES} קרבות ({provisional.length} ערים)
+                      ⏳ בשלב מיון — פחות מ-{MIN_BATTLES} קרבות ({filtProv.length}{q ? " תוצאות" : " ערים"})
                     </div>
-                    {provisional.map((city, i) => renderRow(city, i, null))}
+                    {filtProv.map((city, i) => renderRow(city, i, null))}
                   </>
                 )}
               </div>
@@ -1280,9 +1293,6 @@ export default function App() {
                       {isW && <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(80,200,100,.9)", color: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>✓ ניצח!</div>}
                     </div>
                     <div style={{ fontSize: mob ? "1.1rem" : "clamp(1.2rem,3vw,1.7rem)", fontWeight: 700, color: "#e8ecf4", cursor: "pointer", textDecorationLine: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{city.name}</div>
-                    <div style={{ fontSize: "0.73rem", color: "#8fa3c4" }}>
-                      {stats[city.id] ? (stats[city.id].wins + "/" + stats[city.id].total + " נצחונות") : <span style={{ fontStyle: "italic" }}>טרם השתתף</span>}
-                    </div>
                   </button>
                   {portrait && idx === 0 && <div style={G.vs}>VS</div>}
                 </>
@@ -1298,7 +1308,7 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
             <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "#c4a84f" }}>🏆 הערים המובילות</h2>
             <button style={{ background: "transparent", border: "1px solid rgba(196,168,79,.3)", color: "#c4a84f", borderRadius: 8, padding: "5px 11px", fontSize: "0.76rem", cursor: "pointer" }}
-              onClick={() => setView("leaderboard")}>הצג טבלה מלאה</button>
+              onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
           <div style={{ fontSize: "0.72rem", color: "#5a7099", marginBottom: 12 }}>ערים שהשתתפו בלמעלה מ-{MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
@@ -1332,7 +1342,7 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
             <h2 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "#8fa3c4" }}>⏳ ערים בשלבי מיון</h2>
             <button style={{ background: "transparent", border: "1px solid rgba(143,163,196,.3)", color: "#8fa3c4", borderRadius: 8, padding: "5px 11px", fontSize: "0.76rem", cursor: "pointer" }}
-              onClick={() => setView("leaderboard")}>הצג טבלה מלאה</button>
+              onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
           <div style={{ fontSize: "0.72rem", color: "#5a7099", marginBottom: 12 }}>ערים עם פחות מ-{MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
