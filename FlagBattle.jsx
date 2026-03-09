@@ -229,7 +229,7 @@ export default function App() {
   const [loginVal, setLoginVal] = useState("");
   const [loginErr, setLoginErr] = useState("");
   const [loginTries, setLoginTries] = useState(0);
-  const [lockUntil, setLockUntil] = useState(null);
+  const [lockUntil, setLockUntil] = useState(() => { const v = localStorage.getItem("il_lock_until"); return v && Number(v) > Date.now() ? Number(v) : null; });
   const [passHash, setPassHash] = useState(null);
   const [sessExp, setSessExp] = useState(null);
   const [tab, setTab] = useState("search");
@@ -347,6 +347,8 @@ export default function App() {
 
   const vote = useCallback(async (wid, lid) => {
     if (voted || anim.current) return;
+    if (!pair || wid === lid) return;
+    if (!pair.some(c => c.id === wid) || !pair.some(c => c.id === lid)) return;
     const now = Date.now();
     if (now - lastVote.current < 1500) return;
     lastVote.current = now; anim.current = true; setVoted(wid);
@@ -400,12 +402,16 @@ export default function App() {
     if (lockUntil && Date.now() < lockUntil) { setLoginErr("נעול עוד " + Math.ceil((lockUntil - Date.now()) / 1000) + "s"); return; }
     const h = await hashStr(loginVal);
     if (h === passHash) {
-      setView("admin"); setShowLogin(false); setLoginVal(""); setLoginErr(""); setLoginTries(0);
+      setView("admin"); setShowLogin(false); setLoginVal(""); setLoginErr(""); setLoginTries(0); setLockUntil(null); localStorage.removeItem("il_lock_until");
       setSessExp(Date.now() + 1800000); resetIdle();
     } else {
       const na = loginTries + 1; setLoginTries(na);
-      if (na >= 5) { setLockUntil(Date.now() + 900000); setLoginErr("נעול ל-15 דקות"); }
-      else setLoginErr("שגוי (" + (5 - na) + " נותרו)");
+      if (na >= 5) {
+        const until = Date.now() + 900000;
+        setLockUntil(until);
+        localStorage.setItem("il_lock_until", String(until));
+        setLoginErr("נעול ל-15 דקות");
+      } else setLoginErr("שגוי (" + (5 - na) + " נותרו)");
       setTimeout(() => setLoginErr(""), 3000);
     }
     setLoginVal("");
@@ -415,9 +421,14 @@ export default function App() {
     return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
   }
 
+  function assertSession() {
+    if (!sessExp || Date.now() > sessExp) throw new Error("פג תוקף הסשן — יש להתחבר מחדש");
+  }
+
   async function persist(cc, newOv) {
-    await storage.set(KC, JSON.stringify(cc), true);
-    await storage.set(KO, JSON.stringify(newOv), true);
+    assertSession();
+    await storage.set(KC, JSON.stringify(cc));
+    await storage.set(KO, JSON.stringify(newOv));
     setCustom(cc); setOv(newOv);
   }
 
@@ -425,7 +436,7 @@ export default function App() {
     if (!stgt) return;
     let url = surl.trim();
     if (smode === "url") {
-      if (!url.startsWith("http")) { setSmsg({ ok: false, t: "URL חייב להתחיל ב-http" }); return; }
+      if (!url.startsWith("https://")) { setSmsg({ ok: false, t: "URL חייב להתחיל ב-https://" }); return; }
       if (!surlOk) { setSmsg({ ok: false, t: "הלינק לא נטען" }); return; }
     } else {
       if (!sfile) { setSmsg({ ok: false, t: "יש לבחור קובץ" }); return; }
@@ -453,7 +464,7 @@ export default function App() {
     const name = san(aname.trim());
     const url = normUrl(aurl);
     if (!name) { setAmsg({ ok: false, t: "יש להזין שם עיר" }); return; }
-    if (!url.startsWith("http")) { setAmsg({ ok: false, t: "URL חייב להתחיל ב-http" }); return; }
+    if (!url.startsWith("https://")) { setAmsg({ ok: false, t: "URL חייב להתחיל ב-https://" }); return; }
     if (!aurlOk) { setAmsg({ ok: false, t: "הלינק לא נטען" }); return; }
     const exists = CITIES.some(c => c.name === name) || custom.some(c => c.name === name);
     if (exists) { setAmsg({ ok: false, t: name + " כבר קיימת ברשימה" }); return; }
@@ -968,14 +979,16 @@ export default function App() {
               <h2 style={G.cTitle}>🛡️ הגנות</h2>
               {[
                 [true, "Vote throttle", "1.5 שניות בין הצבעות"],
-                [true, "SHA-256 password", "hash בלבד"],
-                [true, "Login lockout", "5 ניסיונות → 15 דקות"],
-                [true, "Session timeout", "30 דקות"],
-                [true, "File validation", "סוג + גודל"],
+                [true, "Vote pair validation", "IDs חייבים להתאים לזוג הנוכחי"],
+                [true, "SHA-256 password", "hash בלבד, לא נשמרת סיסמה"],
+                [true, "Login lockout", "5 ניסיונות → נעילה 15 דקות (שורדת רענון)"],
+                [true, "Session timeout", "30 דקות + בדיקה לפני כל שמירה"],
+                [true, "File validation", "סוג + גודל (מקס 512KB)"],
+                [true, "HTTPS-only URLs", "קישורי http:// נדחים"],
+                [true, "Security headers", "CSP, X-Frame-Options, nosniff (Vercel)"],
                 [true, "Auto-dedup", "כפילויות מתמזגות"],
                 [false, "reCAPTCHA", "נדרש שרת"],
                 [false, "Rate limiting", "נדרש Redis"],
-                [false, "HTTPS", "נדרש deployment"],
               ].map((item, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", padding: "9px 0", borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                   <span>{item[0] ? "✅" : "🔴"}</span>
