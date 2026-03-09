@@ -297,6 +297,8 @@ export default function App() {
   const [reqMsg, setReqMsg] = useState(null);
   const [reqSending, setReqSending] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [winW, setWinW] = useState(() => window.innerWidth);
+  const [winH, setWinH] = useState(() => window.innerHeight);
 
   const lastVote = useRef(0);
   const anim = useRef(false);
@@ -332,6 +334,13 @@ export default function App() {
   }, [view]);
 
   useEffect(() => { resetIdle(); return () => clearTimeout(idleRef.current); }, [view, resetIdle]);
+
+  useEffect(() => {
+    const upd = () => { setWinW(window.innerWidth); setWinH(window.innerHeight); };
+    window.addEventListener("resize", upd);
+    window.addEventListener("orientationchange", () => setTimeout(upd, 100));
+    return () => window.removeEventListener("resize", upd);
+  }, []);
 
   const pick = useCallback((cities, cur) => {
     const av = cities.filter(c => !failed[c.id]);
@@ -604,20 +613,26 @@ export default function App() {
   const missing = CITIES.filter(c => failed[c.id] && !ov[c.id]);
   const sres = sq.trim() ? all.filter(c => c.name.includes(sq.trim())) : [];
 
+  // portrait = phone held upright; mob = narrow screen in any orientation
+  const portrait = winW < winH;
+  const mob = winW < 600;
+  // landscape phone = wide but short
+  const lscapeMob = winW < 900 && winH < 500;
+
   const G = {
     root: { minHeight: "100vh", background: "linear-gradient(160deg,#0a0f1e,#0d1b35 50%,#0a1628)", fontFamily: "'Heebo','Arial Hebrew',sans-serif", color: "#e8ecf4", paddingBottom: 60 },
     loading: { height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0f1e", gap: 16 },
     spin: { width: 40, height: 40, border: "3px solid rgba(196,168,79,.2)", borderTop: "3px solid #c4a84f", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
     overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,.82)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 },
-    modal: { background: "linear-gradient(180deg,#0f1d36,#0a1426)", border: "1px solid rgba(196,168,79,.3)", borderRadius: 18, padding: "36px 32px", minWidth: 300, textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,.6)" },
-    hdr: { textAlign: "center", padding: "36px 20px 18px", borderBottom: "1px solid rgba(196,168,79,.12)", background: "rgba(0,0,0,.3)", backdropFilter: "blur(10px)" },
-    hrow: { display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: 800, margin: "0 auto", padding: "0 20px" },
-    title: { margin: 0, fontSize: "clamp(2rem,6vw,3.4rem)", fontWeight: 900, background: "linear-gradient(135deg,#c4a84f,#f0d88a 50%,#c4a84f)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" },
+    modal: { background: "linear-gradient(180deg,#0f1d36,#0a1426)", border: "1px solid rgba(196,168,79,.3)", borderRadius: 18, padding: mob ? "24px 18px" : "36px 32px", minWidth: mob ? 0 : 300, width: mob ? "90vw" : "auto", textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,.6)" },
+    hdr: { textAlign: "center", padding: mob ? "18px 12px 12px" : "36px 20px 18px", borderBottom: "1px solid rgba(196,168,79,.12)", background: "rgba(0,0,0,.3)", backdropFilter: "blur(10px)" },
+    hrow: { display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: 800, margin: "0 auto", padding: mob ? "0 10px" : "0 20px" },
+    title: { margin: 0, fontSize: mob ? "clamp(1.5rem,7vw,2.4rem)" : "clamp(2rem,6vw,3.4rem)", fontWeight: 900, background: "linear-gradient(135deg,#c4a84f,#f0d88a 50%,#c4a84f)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" },
     tabBar: { display: "flex", borderBottom: "1px solid rgba(255,255,255,.07)", background: "rgba(0,0,0,.2)", overflowX: "auto", padding: "0 16px" },
-    tab: { background: "transparent", border: "none", borderBottom: "3px solid transparent", color: "#5a7099", padding: "11px 14px", cursor: "pointer", fontSize: "0.8rem", fontFamily: "inherit", whiteSpace: "nowrap" },
+    tab: { background: "transparent", border: "none", borderBottom: "3px solid transparent", color: "#5a7099", padding: mob ? "10px 10px" : "11px 14px", cursor: "pointer", fontSize: mob ? "0.72rem" : "0.8rem", fontFamily: "inherit", whiteSpace: "nowrap" },
     tabOn: { color: "#c4a84f", borderBottomColor: "#c4a84f" },
-    wrap: { maxWidth: 720, margin: "0 auto", padding: "22px 18px" },
-    card: { background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: 20, marginBottom: 14 },
+    wrap: { maxWidth: 720, margin: "0 auto", padding: mob ? "14px 10px" : "22px 18px" },
+    card: { background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: mob ? 14 : 20, marginBottom: 14 },
     cTitle: { margin: "0 0 14px", fontSize: ".95rem", fontWeight: 700, color: "#c4a84f" },
     inp: { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", borderRadius: 8, padding: "9px 12px", color: "#e8ecf4", fontSize: ".91rem", outline: "none", textAlign: "right", fontFamily: "inherit", width: "100%", boxSizing: "border-box" },
     lbl: { fontSize: ".79rem", color: "#8fa3c4", fontWeight: 600 },
@@ -633,16 +648,20 @@ export default function App() {
     redBtn: { background: "rgba(255,80,80,.15)", border: "1px solid rgba(255,80,80,.4)", borderRadius: 6, padding: "5px 11px", color: "#ff6b6b", fontSize: ".78rem", cursor: "pointer", fontFamily: "inherit" },
     th: { background: "rgba(196,168,79,.1)", color: "#c4a84f", padding: "6px 10px", textAlign: "right", fontWeight: 600, borderBottom: "1px solid rgba(196,168,79,.2)" },
     td: { padding: "5px 10px", color: "#8fa3c4", textAlign: "right" },
-    arena: { maxWidth: 1100, margin: "0 auto", padding: "38px 20px", textAlign: "center" },
-    frow: { display: "flex", justifyContent: "center", alignItems: "stretch", position: "relative" },
-    fcard: { flex: 1, maxWidth: 500, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 20, padding: "32px 24px 24px", cursor: "pointer", transition: "all .25s", display: "flex", flexDirection: "column", alignItems: "center", gap: 18, position: "relative", overflow: "hidden", margin: "0 14px" },
-    fcardW: { background: "rgba(80,200,100,.12)", border: "1px solid rgba(80,200,100,.5)", transform: "scale(1.03)", boxShadow: "0 0 30px rgba(80,200,100,.2)" },
-    fcardL: { opacity: 0.28, transform: "scale(0.97)" },
-    fwrap: { width: "100%", aspectRatio: "4/3", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", borderRadius: 14, overflow: "hidden", position: "relative" },
-    fimg: { width: "100%", height: "100%", objectFit: "contain", padding: 16 },
-    vs: { position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", fontWeight: 900, color: "#c4a84f", background: "#0d1b35", border: "2px solid rgba(196,168,79,.4)", borderRadius: "50%", width: 50, height: 50, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none" },
-    lb: { maxWidth: 700, margin: "0 auto", padding: "0 20px 20px" },
-    lbrow: { display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,.03)", borderRadius: 10, padding: "7px 13px", border: "1px solid rgba(255,255,255,.05)" },
+    arena: { maxWidth: 1100, margin: "0 auto", padding: lscapeMob ? "12px 8px" : mob ? "20px 10px" : "38px 20px", textAlign: "center" },
+    // portrait mobile: stack cards vertically; landscape (including landscape phone): side by side
+    frow: { display: "flex", flexDirection: portrait ? "column" : "row", justifyContent: "center", alignItems: portrait ? "stretch" : "stretch", position: "relative", gap: portrait ? 0 : 0 },
+    fcard: { flex: 1, maxWidth: portrait ? "100%" : 500, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 20, padding: lscapeMob ? "14px 12px 12px" : mob ? "20px 16px 16px" : "32px 24px 24px", cursor: "pointer", transition: "all .25s", display: "flex", flexDirection: "column", alignItems: "center", gap: lscapeMob ? 8 : 14, position: "relative", overflow: "hidden", margin: portrait ? "0 0 0 0" : "0 14px" },
+    fcardW: { background: "rgba(80,200,100,.12)", border: "1px solid rgba(80,200,100,.5)", transform: "scale(1.02)", boxShadow: "0 0 30px rgba(80,200,100,.2)" },
+    fcardL: { opacity: 0.28, transform: "scale(0.98)" },
+    fwrap: { width: "100%", aspectRatio: lscapeMob ? "16/7" : portrait ? "16/9" : "4/3", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", borderRadius: 14, overflow: "hidden", position: "relative" },
+    fimg: { width: "100%", height: "100%", objectFit: "contain", padding: mob ? 10 : 16 },
+    // In portrait: VS badge sits inline between the two cards; in landscape: absolute centered
+    vs: portrait
+      ? { alignSelf: "center", fontWeight: 900, color: "#c4a84f", background: "#0d1b35", border: "2px solid rgba(196,168,79,.4)", borderRadius: "50%", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none", margin: "6px 0", fontSize: "0.8rem" }
+      : { position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", fontWeight: 900, color: "#c4a84f", background: "#0d1b35", border: "2px solid rgba(196,168,79,.4)", borderRadius: "50%", width: 50, height: 50, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, pointerEvents: "none" },
+    lb: { maxWidth: 700, margin: "0 auto", padding: mob ? "0 10px 16px" : "0 20px 20px" },
+    lbrow: { display: "flex", alignItems: "center", gap: mob ? 6 : 10, background: "rgba(255,255,255,.03)", borderRadius: 10, padding: mob ? "6px 8px" : "7px 13px", border: "1px solid rgba(255,255,255,.05)" },
     lbbar: { height: "100%", background: "linear-gradient(90deg,#1e6eb5,#c4a84f)", borderRadius: 4, transition: "width .5s" },
   };
 
@@ -1181,8 +1200,8 @@ export default function App() {
       </div>
       <header style={G.hdr}>
         <h1 style={G.title}>League of Crests</h1>
-        <p style={{ margin: "8px 0 0", fontSize: "1rem", color: "#8fa3c4" }}>בואו להכריע מי הישובים עם הסמלים המוצלחים ביותר בישראל</p>
-        <div style={{ marginTop: 10, display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", fontSize: "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
+        {!mob && <p style={{ margin: "8px 0 0", fontSize: "1rem", color: "#8fa3c4" }}>בואו להכריע מי הישובים עם הסמלים המוצלחים ביותר בישראל</p>}
+        <div style={{ marginTop: mob ? 6 : 10, display: "flex", gap: mob ? 12 : 20, justifyContent: "center", flexWrap: "wrap", fontSize: mob ? "0.85rem" : "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
           <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
           <span>{"מספר ערים משתתפות: " + all.filter(c => !failed[c.id]).length}</span>
         </div>
@@ -1225,45 +1244,46 @@ export default function App() {
       </header>
 
       <section style={G.arena}>
-        <div style={{ marginBottom: 20 }}>
-          <button onClick={() => setView("about")} style={{ background: "rgba(196,168,79,.12)", border: "1px solid rgba(196,168,79,.45)", borderRadius: 10, padding: "10px 28px", color: "#f0d88a", fontSize: "0.95rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", letterSpacing: "0.03em" }}
+        <div style={{ marginBottom: mob ? 12 : 20 }}>
+          <button onClick={() => setView("about")} style={{ background: "rgba(196,168,79,.12)", border: "1px solid rgba(196,168,79,.45)", borderRadius: 10, padding: mob ? "7px 18px" : "10px 28px", color: "#f0d88a", fontSize: mob ? "0.82rem" : "0.95rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", letterSpacing: "0.03em" }}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(196,168,79,.22)"}
             onMouseLeave={e => e.currentTarget.style.background = "rgba(196,168,79,.12)"}>
             אודות ›
           </button>
         </div>
-        <div style={{ fontSize: "1.15rem", color: "#8fa3c4", marginBottom: 26 }}>מבין שני הסמלים הבאים, מי בעיניך מוצלח יותר?</div>
+        <div style={{ fontSize: mob ? "0.92rem" : "1.15rem", color: "#8fa3c4", marginBottom: mob ? 14 : 26 }}>מבין שני הסמלים הבאים, מי בעיניך מוצלח יותר?</div>
         {pair && (
           <div style={G.frow}>
             {pair.map((city, idx) => {
               const isW = voted === city.id;
               const isL = !!(voted && voted !== city.id);
               return (
-                <button key={city.id}
-                  style={Object.assign({}, G.fcard, isW ? G.fcardW : {}, isL ? G.fcardL : {})}
-                  onClick={() => vote(city.id, pair[1 - idx].id)} disabled={!!voted}>
-                  <div style={G.fwrap}>
-                    {failed[city.id]
-                      ? <div style={{ fontSize: 50, opacity: 0.3 }}>🏙️</div>
-                      : <img src={getSrc(city, ov)} alt={city.name}
-                          style={G.fimg}
-                          onError={() => {
-                            setFailed(p => Object.assign({}, p, { [city.id]: true }));
-                            setTimeout(() => pick(all, null), 100);
-                          }} />
-                    }
-                    {isW && <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(80,200,100,.9)", color: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>✓ ניצח!</div>}
-                  </div>
-                  <div
-                    style={{ fontSize: "clamp(1.2rem,3vw,1.7rem)", fontWeight: 700, color: "#e8ecf4", cursor: "pointer", textDecorationLine: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}
-                  >{city.name}</div>
-                  <div style={{ fontSize: "0.73rem", color: "#8fa3c4" }}>
-                    {stats[city.id] ? (stats[city.id].wins + "/" + stats[city.id].total + " נצחונות") : <span style={{ fontStyle: "italic" }}>טרם השתתף</span>}
-                  </div>
-                </button>
+                <>
+                  <button key={city.id}
+                    style={Object.assign({}, G.fcard, isW ? G.fcardW : {}, isL ? G.fcardL : {})}
+                    onClick={() => vote(city.id, pair[1 - idx].id)} disabled={!!voted}>
+                    <div style={G.fwrap}>
+                      {failed[city.id]
+                        ? <div style={{ fontSize: 50, opacity: 0.3 }}>🏙️</div>
+                        : <img src={getSrc(city, ov)} alt={city.name}
+                            style={G.fimg}
+                            onError={() => {
+                              setFailed(p => Object.assign({}, p, { [city.id]: true }));
+                              setTimeout(() => pick(all, null), 100);
+                            }} />
+                      }
+                      {isW && <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(80,200,100,.9)", color: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>✓ ניצח!</div>}
+                    </div>
+                    <div style={{ fontSize: mob ? "1.1rem" : "clamp(1.2rem,3vw,1.7rem)", fontWeight: 700, color: "#e8ecf4", cursor: "pointer", textDecorationLine: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{city.name}</div>
+                    <div style={{ fontSize: "0.73rem", color: "#8fa3c4" }}>
+                      {stats[city.id] ? (stats[city.id].wins + "/" + stats[city.id].total + " נצחונות") : <span style={{ fontStyle: "italic" }}>טרם השתתף</span>}
+                    </div>
+                  </button>
+                  {portrait && idx === 0 && <div style={G.vs}>VS</div>}
+                </>
               );
             })}
-            <div style={G.vs}>VS</div>
+            {!portrait && <div style={G.vs}>VS</div>}
           </div>
         )}
       </section>
@@ -1289,12 +1309,12 @@ export default function App() {
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
                     <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                   </div>
-                  <span style={{ minWidth: 88, fontSize: "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
-                  <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,.07)", borderRadius: 4, overflow: "hidden" }}>
+                  <span style={{ flex: 1, fontSize: mob ? "0.8rem" : "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
+                  {!mob && <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,.07)", borderRadius: 4, overflow: "hidden" }}>
                     <div style={Object.assign({}, G.lbbar, { width: barPct + "%", opacity: city.total > 0 ? 1 : 0.15 })} />
-                  </div>
-                  <span style={{ minWidth: 44, fontSize: "0.81rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
-                  <span style={{ minWidth: 44, fontSize: "0.71rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
+                  </div>}
+                  <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "0.75rem" : "0.81rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
+                  <span style={{ minWidth: mob ? 28 : 44, fontSize: "0.71rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
                 </div>
               );
             })}
@@ -1318,10 +1338,9 @@ export default function App() {
                   onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
                   <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                 </div>
-                <span style={{ minWidth: 88, fontSize: "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
-                <div style={{ flex: 1 }} />
-                <span style={{ minWidth: 44, fontSize: "0.81rem", color: "#8fa3c4", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
-                <span style={{ minWidth: 44, fontSize: "0.71rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
+                <span style={{ flex: 1, fontSize: mob ? "0.8rem" : "0.86rem", color: "#e8ecf4" }}>{city.name}</span>
+                <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "0.75rem" : "0.81rem", color: "#8fa3c4", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
+                <span style={{ minWidth: mob ? 28 : 44, fontSize: "0.71rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
               </div>
             ))}
           </div>
