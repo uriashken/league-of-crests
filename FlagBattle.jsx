@@ -63,7 +63,12 @@ function normUrl(raw) {
     // upload.wikimedia.org → convert to Special:FilePath with ?width=300
     if (p.hostname === "upload.wikimedia.org") {
       const parts = p.pathname.split("/");
-      return "https://commons.wikimedia.org/wiki/Special:FilePath/" + parts[parts.length - 1] + "?width=300";
+      const thumbIdx = parts.indexOf("thumb");
+      // thumbnail URLs: .../thumb/a/ab/FILENAME.ext/NNNpx-FILENAME → use FILENAME.ext (not the sized copy)
+      const filename = thumbIdx >= 0 && parts.length > thumbIdx + 3
+        ? parts[thumbIdx + 3]
+        : parts[parts.length - 1];
+      return "https://commons.wikimedia.org/wiki/Special:FilePath/" + filename + "?width=300";
     }
     // Special:FilePath redirect → add ?width=300 to force direct PNG response
     if (p.hostname === "commons.wikimedia.org" && p.pathname.includes("Special:FilePath")) {
@@ -788,7 +793,7 @@ export default function App() {
                         onBlur={async e => {
                           const raw = e.target.value.trim();
                           if (!raw || !isWikiMediaUrl(raw)) return;
-                          setSurlResolving(true);
+                          setSurlResolving(true); setSurlOk(null);
                           const resolved = await resolveWikiUrl(raw);
                           setSurl(resolved); setSurlResolving(false);
                         }} />
