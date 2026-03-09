@@ -792,9 +792,10 @@ export default function App() {
                         onBlur={async e => {
                           const raw = e.target.value.trim();
                           if (!raw || !isWikiMediaUrl(raw)) return;
-                          setSurlResolving(true); setSurlOk(null);
+                          setSurlResolving(true);
                           const resolved = await resolveWikiUrl(raw);
-                          setSurl(resolved); setSurlResolving(false);
+                          if (resolved !== raw) { setSurlOk(null); setSurl(resolved); }
+                          setSurlResolving(false);
                         }} />
                       {surl.startsWith("http") && (
                         <div style={Object.assign({}, G.dz, { minHeight: 70, cursor: "default", pointerEvents: "none" })}>
