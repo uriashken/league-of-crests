@@ -707,84 +707,19 @@ export default function App() {
           )}
 
           {tab === "search" && (
-            <div>
-              <div style={G.card}>
-                <h2 style={G.cTitle}>🔍 עריכת סמלי ערים</h2>
-                {(() => {
-                  const brokenActive = all.filter(c => failed[c.id]);
-                  const brokenIds = new Set(pending.map(p => p.id));
-                  const waitingList = [
-                    ...pending.map(c => ({ ...c, _reason: "חסר קישור" })),
-                    ...brokenActive.filter(c => !brokenIds.has(c.id)).map(c => ({ ...c, _reason: "קישור שבור" })),
-                  ];
-                  const filtered = sq.trim() ? waitingList.filter(c => c.name.includes(sq.trim())) : waitingList;
-                  if (filtered.length === 0) return null;
-                  return (
-                    <div style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: "0.78rem", color: "#ff9966", fontWeight: 700, marginBottom: 6 }}>
-                        ⏳ ממתינות לעדכון סמל ({waitingList.length}){sq.trim() ? " · " + filtered.length + " תוצאות" : ""}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 5, maxHeight: 300, overflowY: "auto" }}>
-                        {filtered.map(city => (
-                          <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.5)", background: "rgba(255,140,0,.04)" })}
-                            onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
-                            <div style={{ width: 52, height: 34, flexShrink: 0, background: "rgba(255,255,255,.05)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏙️</div>
-                            <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
-                            <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>{city._reason}</span>
-                            <span style={{ color: "#c4a84f", fontSize: "0.8rem", marginRight: 8 }}>עדכן ›</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "12px 0" }} />
-                    </div>
-                  );
-                })()}
-                <input style={Object.assign({}, G.inp, { marginBottom: 12 })} placeholder="חיפוש עיר…" value={sq}
-                  onChange={e => { setSq(e.target.value); setStgt(null); setSmsg(null); }} />
-                {(() => {
-                  const q = sq.trim();
-                  const list = q ? [...pending.filter(c => c.name.includes(q)), ...all.filter(c => c.name.includes(q))] : all.slice().sort((a, b) => {
-                    const ab = !!failed[a.id], bb = !!failed[b.id];
-                    if (ab !== bb) return ab ? -1 : 1;
-                    return a.name.localeCompare(b.name, "he");
-                  });
-                  return (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 420, overflowY: "auto" }}>
-                      {list.map(city => {
-                        const src = getSrc(city, ov);
-                        const isBad = !!failed[city.id];
-                        return (
-                          <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer" }, isBad ? { borderColor: "rgba(255,140,0,.4)" } : {})}
-                            onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
-                            <div style={{ width: 52, height: 34, flexShrink: 0, background: "#fff", borderRadius: 4, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                              <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                                onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))}
-                                onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[city.id]; return n; })} />
-                            </div>
-                            <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
-                            {isBad && <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>⚠️ שבור</span>}
-                            <span style={{ color: "#c4a84f", fontSize: "0.8rem", marginRight: 8 }}>עריכה ›</span>
-                          </div>
-                        );
-                      })}
-                      {list.length === 0 && <div style={{ color: "#5a7099", fontSize: "0.85rem" }}>לא נמצאה עיר</div>}
-                    </div>
-                  );
-                })()}
-                {smsg && !stgt && <div style={{ color: smsg.ok ? "#50c864" : "#ff6b6b", fontWeight: 600, marginTop: 10 }}>{smsg.t}</div>}
+            <div style={G.card}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <h2 style={Object.assign({}, G.cTitle, { margin: 0, flex: 1 })}>🔍 עריכת סמלי ערים</h2>
+                {stgt && <button style={Object.assign({}, G.ghost, { padding: "4px 12px", fontSize: "0.76rem" })} onClick={() => { setStgt(null); setSmsg(null); }}>← חזרה לרשימה</button>}
               </div>
 
-              {stgt && (
-                <div style={Object.assign({}, G.card, { border: "1px solid rgba(196,168,79,.35)" })}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                    <div style={Object.assign({}, G.thumb, { width: 56, height: 37, display: "flex", alignItems: "center", justifyContent: "center" })}>
-                      <img src={getSrc(stgt, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              {stgt ? (
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, background: "rgba(255,255,255,.03)", borderRadius: 10, padding: "10px 14px" }}>
+                    <div style={{ width: 56, height: 37, flexShrink: 0, background: "#fff", borderRadius: 6, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <img src={getSrc(stgt, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={e => { e.target.style.display = "none"; }} />
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 700, color: "#f0d88a" }}>{stgt.name}</div>
-                      <div style={{ fontSize: "0.72rem", color: "#5a7099" }}>{stgt.custom ? "מותאמת" : "מובנה"}</div>
-                    </div>
-                    <button style={Object.assign({}, G.ghost, { marginRight: "auto", padding: "4px 10px", fontSize: "0.76rem" })} onClick={() => setStgt(null)}>✕</button>
+                    <div style={{ fontWeight: 700, color: "#f0d88a", fontSize: "1.05rem" }}>{stgt.name}</div>
                   </div>
                   <div style={G.modeWrap}>
                     <button style={Object.assign({}, G.modeBtn, smode === "url" ? G.modeBtnOn : {})} onClick={() => setSmode("url")}>🔗 קישור</button>
@@ -792,7 +727,7 @@ export default function App() {
                   </div>
                   {smode === "url" ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      <label style={G.lbl}>קישור חדש לדגל</label>
+                      <label style={G.lbl}>קישור חדש לסמל</label>
                       <input style={Object.assign({}, G.inp, { direction: "ltr", textAlign: "left" })} placeholder="https://..." value={surl}
                         onChange={e => { setSurl(e.target.value); setSurlOk(null); }}
                         onBlur={async e => {
@@ -807,7 +742,7 @@ export default function App() {
                           <img src={surl} alt="preview" style={G.prev} onLoad={() => setSurlOk(true)} onError={() => setSurlOk(false)} />
                         </div>
                       )}
-                      {surlResolving && <div style={{ color: "#c4a84f", fontSize: "0.82rem" }}>⏳ מאחזר URL ישיר…</div>}
+                      {surlResolving && <div style={{ color: "#c4a84f", fontSize: "0.82rem" }}>⏳ מאחזר…</div>}
                       {!surlResolving && surlOk === true && <div style={{ color: "#50c864", fontSize: "0.82rem" }}>✅ נטענה</div>}
                       {surlOk === false && <div style={{ color: "#ff6b6b", fontSize: "0.82rem" }}>❌ לא ניתן לטעון</div>}
                     </div>
@@ -827,11 +762,76 @@ export default function App() {
                   )}
                   {smsg && <div style={{ color: smsg.ok ? "#50c864" : "#ff6b6b", fontWeight: 600, marginTop: 8 }}>{smsg.t}</div>}
                   <button style={Object.assign({}, G.gold, { marginTop: 12, opacity: ssaving ? 0.6 : 1 })} onClick={saveFlag} disabled={ssaving}>
-                    {ssaving ? "שומר…" : "שמור דגל ✓"}
+                    {ssaving ? "שומר…" : "שמור סמל ✓"}
                   </button>
                 </div>
+              ) : (
+                <>
+                  {(() => {
+                    const brokenActive = all.filter(c => failed[c.id]);
+                    const brokenIds = new Set(pending.map(p => p.id));
+                    const waitingList = [
+                      ...pending.map(c => ({ ...c, _reason: "חסר קישור" })),
+                      ...brokenActive.filter(c => !brokenIds.has(c.id)).map(c => ({ ...c, _reason: "קישור שבור" })),
+                    ];
+                    const filtered = sq.trim() ? waitingList.filter(c => c.name.includes(sq.trim())) : waitingList;
+                    if (filtered.length === 0) return null;
+                    return (
+                      <div style={{ marginBottom: 14 }}>
+                        <div style={{ fontSize: "0.78rem", color: "#ff9966", fontWeight: 700, marginBottom: 6 }}>
+                          ⏳ ממתינות לעדכון סמל ({waitingList.length}){sq.trim() ? " · " + filtered.length + " תוצאות" : ""}
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 5, maxHeight: 260, overflowY: "auto" }}>
+                          {filtered.map(city => (
+                            <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer", borderColor: "rgba(255,140,0,.5)", background: "rgba(255,140,0,.04)" })}
+                              onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
+                              <div style={{ width: 52, height: 34, flexShrink: 0, background: "rgba(255,255,255,.05)", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏙️</div>
+                              <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
+                              <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>{city._reason}</span>
+                              <span style={{ color: "#c4a84f", fontSize: "0.8rem", marginRight: 8 }}>עדכן ›</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "12px 0" }} />
+                      </div>
+                    );
+                  })()}
+                  <input style={Object.assign({}, G.inp, { marginBottom: 12 })} placeholder="חיפוש עיר…" value={sq}
+                    onChange={e => { setSq(e.target.value); setSmsg(null); }} />
+                  {(() => {
+                    const q = sq.trim();
+                    const list = q
+                      ? [...pending.filter(c => c.name.includes(q)), ...all.filter(c => c.name.includes(q))]
+                      : all.slice().sort((a, b) => {
+                          const ab = !!failed[a.id], bb = !!failed[b.id];
+                          if (ab !== bb) return ab ? -1 : 1;
+                          return a.name.localeCompare(b.name, "he");
+                        });
+                    return (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 420, overflowY: "auto" }}>
+                        {list.map(city => {
+                          const isBad = !!failed[city.id];
+                          return (
+                            <div key={city.id} style={Object.assign({}, G.row, { cursor: "pointer" }, isBad ? { borderColor: "rgba(255,140,0,.4)" } : {})}
+                              onClick={() => { setStgt(city); setSurl(""); setSurlOk(null); setSfile(null); setSprev(null); setSmode("url"); setSmsg(null); }}>
+                              <div style={{ width: 52, height: 34, flexShrink: 0, background: "#fff", borderRadius: 4, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                  onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))}
+                                  onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[city.id]; return n; })} />
+                              </div>
+                              <span style={{ fontWeight: 600, color: "#e8ecf4", flex: 1 }}>{city.name}</span>
+                              {isBad && <span style={{ color: "#ff9966", fontSize: "0.75rem" }}>⚠️ שבור</span>}
+                              <span style={{ color: "#c4a84f", fontSize: "0.8rem", marginRight: 8 }}>עריכה ›</span>
+                            </div>
+                          );
+                        })}
+                        {list.length === 0 && <div style={{ color: "#5a7099", fontSize: "0.85rem" }}>לא נמצאה עיר</div>}
+                      </div>
+                    );
+                  })()}
+                  {smsg && <div style={{ color: smsg.ok ? "#50c864" : "#ff6b6b", fontWeight: 600, marginTop: 10 }}>{smsg.t}</div>}
+                </>
               )}
-
             </div>
           )}
 
