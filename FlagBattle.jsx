@@ -72,6 +72,17 @@ function normUrl(raw) {
   return u;
 }
 
+function isWikiMediaUrl(url) {
+  try {
+    const h = new URL(url).hostname;
+    return h === "commons.wikimedia.org" || h === "upload.wikimedia.org";
+  } catch { return false; }
+}
+
+async function resolveWikiUrl(url) {
+  return normUrl(url);
+}
+
 function getSrc(city, ov) {
   if (city.custom) return city.urlFlag || city.dataUrl || "";
   if (ov && ov[city.id]) return ov[city.id];
