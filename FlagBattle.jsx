@@ -1292,7 +1292,7 @@ export default function App() {
                       }
                       {isW && <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(80,200,100,.9)", color: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>✓ ניצח!</div>}
                     </div>
-                    <div style={{ fontSize: mob ? "1.1rem" : "clamp(1.2rem,3vw,1.7rem)", fontWeight: 700, color: "#e8ecf4", cursor: "pointer", textDecorationLine: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{city.name}</div>
+                    <div style={{ fontSize: mob ? "1.1rem" : "clamp(1.2rem,3vw,1.7rem)", fontWeight: 700, color: "#e8ecf4" }}>{city.name}</div>
                   </button>
                   {portrait && idx === 0 && <div style={G.vs}>VS</div>}
                 </>
