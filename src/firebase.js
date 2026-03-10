@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBzrOOf9hBzS5P5kcrOr-4FQyb52C2ODmg",
@@ -33,5 +33,9 @@ export const storage = {
     } catch (e) {
       localStorage.setItem(key, value);
     }
+  },
+  remove: async (key) => {
+    try { await deleteDoc(doc(db, "appData", key)); } catch (e) {}
+    localStorage.removeItem(key);
   },
 };

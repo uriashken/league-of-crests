@@ -673,7 +673,8 @@ export default function App() {
   }
 
   async function doReset() {
-    await storage.set(KS, JSON.stringify({ stats: {}, totalBattles: 0 }), true);
+    await storage.remove(KS);
+    localStorage.setItem(KS, JSON.stringify({ stats: {}, totalBattles: 0 }));
     setStats({}); setBattles(0); setRconf(false);
   }
 
