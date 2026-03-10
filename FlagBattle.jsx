@@ -1289,7 +1289,7 @@ export default function App() {
           </div>
 
           <div style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 16, padding: "32px 28px", marginBottom: 24, lineHeight: 1.9, fontSize: "0.95rem", color: "#c8d4e8" }}>
-            <p style={{ marginTop: 0 }}>אז איך בכלל אפשר לקבוע אם סמל של עיר הוא ״טוב״ או לא? הנה 5 עקרונות שניסחה <strong style={{ color: "#f0d88a" }}>NAVA</strong>.<br />(North American Vexillological Association):</p>
+            <p style={{ marginTop: 0 }}>אז איך בכלל אפשר לקבוע אם סמל של עיר הוא ״טוב״ או לא? הנה 5 עקרונות שניסחה <strong style={{ color: "#f0d88a" }}>NAVA</strong><br />(North American Vexillological Association):</p>
             <ol style={{ paddingRight: 20, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
               <li><strong style={{ color: "#e8ecf4" }}>שמירה על פשטות:</strong> הסמל צריך להיות כל כך פשוט שילד יוכל לצייר אותו מהזיכרון.</li>
               <li><strong style={{ color: "#e8ecf4" }}>סמליות משמעותית:</strong> הצבעים והצורות צריכים לייצג משהו שקשור לעיר, להיסטוריה או התרבות שלה.</li>
