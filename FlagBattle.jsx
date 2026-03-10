@@ -887,7 +887,15 @@ export default function App() {
                           </span>
                           {item.type === "contact" && item.email && <span style={{ fontSize: "0.78rem", color: "#5a7099", marginRight: 8 }}>{item.email}</span>}
                         </div>
-                        <span style={{ fontSize: "0.7rem", color: "#5a7099", flexShrink: 0 }}>{new Date(item.archivedAt).toLocaleString("he-IL")}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                          <span style={{ fontSize: "0.7rem", color: "#5a7099" }}>{new Date(item.archivedAt).toLocaleString("he-IL")}</span>
+                          <button style={{ background: "transparent", border: "1px solid rgba(255,100,100,.3)", color: "#ff6b6b", borderRadius: 6, padding: "3px 9px", fontSize: "0.75rem", cursor: "pointer" }}
+                            onClick={async () => {
+                              const next = archive.filter(a => a.id !== item.id);
+                              await storage.set(KArchive, JSON.stringify(next));
+                              setArchive(next);
+                            }}>מחק</button>
+                        </div>
                       </div>
                       {item.type === "contact" && <div style={{ fontSize: "0.88rem", color: "#8fa3c4", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{item.message}</div>}
                       {item.type === "request" && <div style={{ fontSize: "0.72rem", color: "#5a7099", direction: "ltr", wordBreak: "break-all", marginTop: 6 }}>{item.url && item.url.slice(0, 60) + (item.url.length > 60 ? "…" : "")}</div>}
