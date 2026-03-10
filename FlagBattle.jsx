@@ -1384,7 +1384,7 @@ export default function App() {
             בכל פעם יופיעו לפניכן.ם 2 סמלים אקראיים,<br />
             וכל מה שאתן.ם צריכות.ים לעשות הוא ללחוץ על זה שבעיניכן.ם ״מוצלח״ יותר.<br />
             איך מחליטים? זו יכולה להיות תחושת בטן, או לפי <span onClick={() => setView("about")} style={{ color: "#c4a84f", textDecoration: "underline", cursor: "pointer" }}>מדדים קצת יותר מקצועיים</span>.<br />
-            <span style={{ color: "#c4a84f" }}>אז.. בואו לעזור לנו לקבוע - מי הוא הסמל הטוב ביותר בישראל?</span>
+            <span style={{ color: "#c4a84f", fontWeight: 700 }}>אז.. בואו לעזור לנו לקבוע - מי הוא הסמל הטוב ביותר בישראל?</span>
           </>}
         </p>
         <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
