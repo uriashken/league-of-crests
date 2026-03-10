@@ -50,6 +50,8 @@ const KO = "il_flag_overrides_v1";
 const KP = "il_admin_pass_hash_v1";
 const KR = "il_flag_requests_v1";
 const KPend = "il_flag_pending_v1";
+const KContact = "il_contact_messages_v1";
+const KArchive = "il_archive_v1";
 
 
 function wikiUrl(f) {
@@ -301,7 +303,14 @@ export default function App() {
   const [reqMode, setReqMode] = useState("url");
   const [reqMsg, setReqMsg] = useState(null);
   const [reqSending, setReqSending] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [contacts, setContacts] = useState([]);
+  const [archive, setArchive] = useState([]);
+  const [ctName, setCtName] = useState("");
+  const [ctEmail, setCtEmail] = useState("");
+  const [ctMsg, setCtMsg] = useState("");
+  const [ctSent, setCtSent] = useState(false);
+  const [ctErr, setCtErr] = useState(null);
+  const [ctSending, setCtSending] = useState(false);
   const [winW, setWinW] = useState(() => window.innerWidth);
   const [winH, setWinH] = useState(() => window.innerHeight);
 
@@ -322,6 +331,8 @@ export default function App() {
       try { const r = await storage.get(KO, true).catch(() => null); if (r && r.value) setOv(JSON.parse(r.value)); } catch (e) {}
       try { const r = await storage.get(KR, true).catch(() => null); if (r && r.value) setRequests(JSON.parse(r.value)); } catch (e) {}
       try { const r = await storage.get(KPend, true).catch(() => null); if (r && r.value) setPending(JSON.parse(r.value)); } catch (e) {}
+      try { const r = await storage.get(KContact, true).catch(() => null); if (r && r.value) setContacts(JSON.parse(r.value)); } catch (e) {}
+      try { const r = await storage.get(KArchive, true).catch(() => null); if (r && r.value) setArchive(JSON.parse(r.value)); } catch (e) {}
       try {
         const r = await storage.get(KP, true).catch(() => null);
         if (r && r.value) setPassHash(r.value);
@@ -421,9 +432,41 @@ export default function App() {
   }
 
   async function dismissRequest(id) {
+    const item = requests.find(r => r.id === id);
     const next = requests.filter(r => r.id !== id);
     await storage.set(KR, JSON.stringify(next), true);
     setRequests(next);
+    if (item) {
+      const nextArchive = [...archive, Object.assign({}, item, { type: "request", archivedAt: new Date().toISOString() })];
+      await storage.set(KArchive, JSON.stringify(nextArchive));
+      setArchive(nextArchive);
+    }
+  }
+
+  async function submitContact() {
+    if (!ctName.trim()) { setCtErr("יש להזין שם"); return; }
+    if (!ctMsg.trim()) { setCtErr("יש לכתוב הודעה"); return; }
+    setCtSending(true); setCtErr(null);
+    try {
+      const entry = { id: "c-" + Date.now(), name: ctName.trim(), email: ctEmail.trim(), message: ctMsg.trim(), sentAt: new Date().toISOString() };
+      const next = [...contacts, entry];
+      await storage.set(KContact, JSON.stringify(next));
+      setContacts(next);
+      setCtName(""); setCtEmail(""); setCtMsg(""); setCtSent(true);
+    } catch (e) { setCtErr("שגיאה בשליחה, נסה שוב"); }
+    setCtSending(false);
+  }
+
+  async function dismissContact(id) {
+    const item = contacts.find(c => c.id === id);
+    const next = contacts.filter(c => c.id !== id);
+    await storage.set(KContact, JSON.stringify(next));
+    setContacts(next);
+    if (item) {
+      const nextArchive = [...archive, Object.assign({}, item, { type: "contact", archivedAt: new Date().toISOString() })];
+      await storage.set(KArchive, JSON.stringify(nextArchive));
+      setArchive(nextArchive);
+    }
   }
 
   async function doLogin() {
@@ -702,6 +745,8 @@ export default function App() {
   if (view === "admin") {
     const TABS = [
       { id: "requests", l: "📬 בקשות" + (requests.length > 0 ? " (" + requests.length + ")" : "") },
+      { id: "contacts", l: "✉️ פניות" + (contacts.length > 0 ? " (" + contacts.length + ")" : "") },
+      { id: "archive", l: "🗃️ ארכיון" + (archive.length > 0 ? " (" + archive.length + ")" : "") },
       { id: "add", l: "✏️ הוספה ידנית" },
       { id: "search", l: "🔍 עריכה" },
       { id: "import", l: "📥 ייבוא גיליון" },
@@ -759,6 +804,63 @@ export default function App() {
                       <button style={Object.assign({}, G.gold, { flexShrink: 0, fontSize: "0.8rem", padding: "6px 14px" })} onClick={() => dismissRequest(req.id)}>
                         טופל ✓
                       </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "contacts" && (
+            <div style={G.card}>
+              <h2 style={G.cTitle}>✉️ פניות מהאתר</h2>
+              {contacts.length === 0 ? (
+                <div style={{ color: "#5a7099", fontSize: "0.9rem" }}>אין פניות חדשות</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {[...contacts].sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt)).map(ct => (
+                    <div key={ct.id} style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.09)", borderRadius: 12, padding: "14px 16px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 8 }}>
+                        <div>
+                          <span style={{ fontWeight: 700, color: "#f0d88a", fontSize: "0.95rem" }}>{ct.name}</span>
+                          {ct.email && <span style={{ fontSize: "0.78rem", color: "#8fa3c4", marginRight: 8 }}>{ct.email}</span>}
+                        </div>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                          <span style={{ fontSize: "0.7rem", color: "#5a7099" }}>{new Date(ct.sentAt).toLocaleString("he-IL")}</span>
+                          <button style={Object.assign({}, G.gold, { fontSize: "0.8rem", padding: "5px 12px" })} onClick={() => dismissContact(ct.id)}>טופל ✓</button>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: "0.9rem", color: "#c8d4e8", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{ct.message}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "archive" && (
+            <div style={G.card}>
+              <h2 style={G.cTitle}>🗃️ ארכיון פניות ובקשות</h2>
+              {archive.length === 0 ? (
+                <div style={{ color: "#5a7099", fontSize: "0.9rem" }}>הארכיון ריק</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {[...archive].sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt)).map(item => (
+                    <div key={item.id} style={{ background: "rgba(255,255,255,.02)", border: "1px solid rgba(255,255,255,.06)", borderRadius: 12, padding: "14px 16px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: item.type === "contact" ? 8 : 0 }}>
+                        <div>
+                          <span style={{ fontSize: "0.7rem", background: item.type === "contact" ? "rgba(196,168,79,.15)" : "rgba(80,200,100,.12)", color: item.type === "contact" ? "#c4a84f" : "#50c864", borderRadius: 6, padding: "2px 8px", marginLeft: 8 }}>
+                            {item.type === "contact" ? "פנייה" : "בקשת דגל"}
+                          </span>
+                          <span style={{ fontWeight: 700, color: "#e8ecf4", fontSize: "0.95rem" }}>
+                            {item.type === "contact" ? item.name : item.cityName}
+                          </span>
+                          {item.type === "contact" && item.email && <span style={{ fontSize: "0.78rem", color: "#5a7099", marginRight: 8 }}>{item.email}</span>}
+                        </div>
+                        <span style={{ fontSize: "0.7rem", color: "#5a7099", flexShrink: 0 }}>{new Date(item.archivedAt).toLocaleString("he-IL")}</span>
+                      </div>
+                      {item.type === "contact" && <div style={{ fontSize: "0.88rem", color: "#8fa3c4", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{item.message}</div>}
+                      {item.type === "request" && <div style={{ fontSize: "0.72rem", color: "#5a7099", direction: "ltr", wordBreak: "break-all", marginTop: 6 }}>{item.url && item.url.slice(0, 60) + (item.url.length > 60 ? "…" : "")}</div>}
                     </div>
                   ))}
                 </div>
@@ -1183,7 +1285,7 @@ export default function App() {
           </div>
 
           <div style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 16, padding: "32px 28px", marginBottom: 24, lineHeight: 1.9, fontSize: "0.95rem", color: "#c8d4e8" }}>
-            <p style={{ marginTop: 0 }}>אז איך בכלל אפשר לקבוע אם סמל של עיר הוא ״טוב״ או לא? הנה 5 עקרונות שניסחה <strong style={{ color: "#f0d88a" }}>NAVA</strong> (North American Vexillological Association):</p>
+            <p style={{ marginTop: 0 }}>אז איך בכלל אפשר לקבוע אם סמל של עיר הוא ״טוב״ או לא? הנה 5 עקרונות שניסחה <strong style={{ color: "#f0d88a" }}>NAVA</strong>.<br />(North American Vexillological Association):</p>
             <ol style={{ paddingRight: 20, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
               <li><strong style={{ color: "#e8ecf4" }}>שמירה על פשטות:</strong> הסמל צריך להיות כל כך פשוט שילד יוכל לצייר אותו מהזיכרון.</li>
               <li><strong style={{ color: "#e8ecf4" }}>סמליות משמעותית:</strong> הצבעים והצורות צריכים לייצג משהו שקשור לעיר, להיסטוריה או התרבות שלה.</li>
@@ -1213,6 +1315,34 @@ export default function App() {
             </div>
           </div>
 
+          <div style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 16, padding: "32px 28px", marginTop: 24 }}>
+            <h2 style={{ margin: "0 0 20px", fontSize: "1.2rem", fontWeight: 800, color: "#c4a84f" }}>צרו קשר</h2>
+            {ctSent ? (
+              <div style={{ textAlign: "center", padding: "24px 0", color: "#50c864", fontSize: "1rem", fontWeight: 700 }}>
+                ✓ ההודעה נשלחה! תודה, נחזור אליכם בהקדם.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={{ fontSize: "0.78rem", color: "#8fa3c4" }}>שם <span style={{ color: "#ff6b6b" }}>*</span></label>
+                  <input style={Object.assign({}, G.inp, { maxWidth: 320 })} placeholder="השם שלך" value={ctName} onChange={e => setCtName(e.target.value)} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={{ fontSize: "0.78rem", color: "#8fa3c4" }}>מייל <span style={{ color: "#5a7099" }}>(אופציונלי)</span></label>
+                  <input style={Object.assign({}, G.inp, { maxWidth: 320 })} placeholder="your@email.com" value={ctEmail} onChange={e => setCtEmail(e.target.value)} dir="ltr" />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={{ fontSize: "0.78rem", color: "#8fa3c4" }}>הודעה <span style={{ color: "#ff6b6b" }}>*</span></label>
+                  <textarea style={Object.assign({}, G.inp, { minHeight: 100, resize: "vertical", fontFamily: "inherit", lineHeight: 1.6 })} placeholder="דברו אליי..." value={ctMsg} onChange={e => setCtMsg(e.target.value)} />
+                </div>
+                {ctErr && <div style={{ color: "#ff6b6b", fontSize: "0.85rem" }}>{ctErr}</div>}
+                <button style={Object.assign({}, G.gold, { alignSelf: "flex-start" })} onClick={submitContact} disabled={ctSending}>
+                  {ctSending ? "שולח…" : "שלח הודעה"}
+                </button>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     );
@@ -1233,42 +1363,6 @@ export default function App() {
         <div style={{ marginTop: mob ? 6 : 10, display: "flex", gap: mob ? 12 : 20, justifyContent: "center", flexWrap: "wrap", fontSize: mob ? "0.85rem" : "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
           <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
           <span>{"מספר ערים משתתפות: " + all.filter(c => !failed[c.id]).length}</span>
-        </div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 14, flexWrap: "wrap" }}>
-          {[
-            {
-              label: "WhatsApp",
-              bg: "#25D366", color: "#fff",
-              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.555 4.121 1.524 5.855L.057 23.082a.75.75 0 0 0 .92.92l5.228-1.467A11.942 11.942 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.714 9.714 0 0 1-4.951-1.355l-.355-.211-3.683 1.033 1.033-3.683-.211-.355A9.714 9.714 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>,
-              onClick: () => window.open("https://wa.me/?text=" + encodeURIComponent("מי העיר עם הסמל הכי יפה בישראל?" + window.location.href), "_blank"),
-            },
-            {
-              label: "Facebook",
-              bg: "#1877F2", color: "#fff",
-              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>,
-              onClick: () => window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), "_blank"),
-            },
-            {
-              label: copied ? "הועתק!" : "Instagram",
-              bg: copied ? "#50c864" : "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)",
-              color: "#fff",
-              icon: copied
-                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                : <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>,
-              onClick: () => { navigator.clipboard.writeText(window.location.href).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); },
-            },
-            {
-              label: "מייל",
-              bg: "rgba(255,255,255,.1)", color: "#e8ecf4",
-              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>,
-              onClick: () => window.open("mailto:?subject=" + encodeURIComponent("מי העיר עם הסמל הכי יפה בישראל?") + "&body=" + encodeURIComponent("מי העיר עם הסמל הכי יפה בישראל? בוא לבחור!\n" + window.location.href), "_blank"),
-            },
-          ].map(btn => (
-            <button key={btn.label} onClick={btn.onClick} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, border: "none", background: btn.bg, color: btn.color, fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "opacity .2s" }}
-              onMouseEnter={e => e.currentTarget.style.opacity = "0.85"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
-              {btn.icon}{btn.label}
-            </button>
-          ))}
         </div>
       </header>
 
@@ -1433,6 +1527,33 @@ export default function App() {
 
 
       <footer style={{ textAlign: "center", padding: "26px 20px 16px" }}>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 16, flexWrap: "wrap" }}>
+          {[
+            {
+              label: "WhatsApp",
+              bg: "#25D366", color: "#fff",
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.555 4.121 1.524 5.855L.057 23.082a.75.75 0 0 0 .92.92l5.228-1.467A11.942 11.942 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.714 9.714 0 0 1-4.951-1.355l-.355-.211-3.683 1.033 1.033-3.683-.211-.355A9.714 9.714 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>,
+              onClick: () => window.open("https://wa.me/?text=" + encodeURIComponent("מי העיר עם הסמל הכי יפה בישראל?" + window.location.href), "_blank"),
+            },
+            {
+              label: "Facebook",
+              bg: "#1877F2", color: "#fff",
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>,
+              onClick: () => window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), "_blank"),
+            },
+            {
+              label: "מייל",
+              bg: "rgba(255,255,255,.1)", color: "#e8ecf4",
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>,
+              onClick: () => window.open("mailto:?subject=" + encodeURIComponent("מי העיר עם הסמל הכי יפה בישראל?") + "&body=" + encodeURIComponent("מי העיר עם הסמל הכי יפה בישראל? בוא לבחור!\n" + window.location.href), "_blank"),
+            },
+          ].map(btn => (
+            <button key={btn.label} onClick={btn.onClick} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, border: "none", background: btn.bg, color: btn.color, fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "opacity .2s" }}
+              onMouseEnter={e => e.currentTarget.style.opacity = "0.85"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
+              {btn.icon}{btn.label}
+            </button>
+          ))}
+        </div>
         <button style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.14)", fontSize: "0.76rem", cursor: "pointer" }}
           onClick={() => setShowLogin(true)}>⚙️ אדמין</button>
       </footer>
