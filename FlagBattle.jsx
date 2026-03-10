@@ -902,7 +902,7 @@ export default function App() {
                         }} />
                       {surl.startsWith("http") && (
                         <div style={Object.assign({}, G.dz, { minHeight: 70, cursor: "default", pointerEvents: "none" })}>
-                          <img src={surl} alt="preview" style={G.prev} onLoad={() => setSurlOk(true)} onError={() => setSurlOk(false)} />
+                          <img key={surl} src={surl} alt="preview" style={G.prev} onLoad={() => setSurlOk(true)} onError={() => setSurlOk(false)} />
                         </div>
                       )}
                       {surlResolving && <div style={{ color: "#c4a84f", fontSize: "0.82rem" }}>⏳ מאחזר…</div>}
