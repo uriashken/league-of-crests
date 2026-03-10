@@ -68,8 +68,12 @@ function normUrl(raw) {
       const thumbIdx = parts.indexOf("thumb");
       // thumbnail URLs (.../thumb/...) are already rendered images — use as-is
       if (thumbIdx >= 0) return u;
-      // non-thumbnail (e.g. direct SVG) → convert to Special:FilePath PNG
-      return "https://commons.wikimedia.org/wiki/Special:FilePath/" + parts[parts.length - 1] + "?width=300";
+      // only Commons files can be converted to Special:FilePath
+      if (parts[1] === "wikipedia" && parts[2] === "commons") {
+        return "https://commons.wikimedia.org/wiki/Special:FilePath/" + parts[parts.length - 1] + "?width=300";
+      }
+      // files from other wikis (e.g. Hebrew Wikipedia) — use direct URL as-is
+      return u;
     }
     // Special:FilePath redirect → add ?width=300 to force direct PNG response
     if (p.hostname === "commons.wikimedia.org" && p.pathname.includes("Special:FilePath")) {
