@@ -1364,13 +1364,28 @@ export default function App() {
       <header style={G.hdr}>
         <h1 style={G.title}>League of Crests</h1>
         <p style={{ margin: "14px auto 0", fontSize: mob ? "1rem" : "1.2rem", fontWeight: 400, color: "#e8ecf4", textAlign: "center", lineHeight: 1.35, maxWidth: 640 }}>
-          כמעט לכל עיר, ישוב, מושב וקיבוץ יש סמל. חלקם מרשימים, חלקם מזעזעים.<br />
-          אנחנו כאן כדי להחליט איזה סמלים הם הטובים ביותר בישראל,<br />
-          ואיזה סמלים צריכים לעבור דחוף עיצוב מחדש.<br />
-          בכל פעם יופיעו לפניכן.ם 2 סמלים אקראיים,<br />
-          וכל מה שאתן.ם צריכות.ים לעשות הוא ללחוץ על זה שבעיניכן.ם ״מוצלח״ יותר.<br />
-          איך מחליטים? זו יכולה להיות תחושת בטן, או לפי <span onClick={() => setView("about")} style={{ color: "#c4a84f", textDecoration: "underline", cursor: "pointer" }}>מדדים קצת יותר מקצועיים</span>.<br />
-          <span style={{ color: "#c4a84f" }}>אז.. בואו לעזור לנו לקבוע - מי הוא הסמל הטוב ביותר בישראל?</span>
+          {mob ? <>
+            כמעט לכל עיר, ישוב, מושב וקיבוץ יש סמל.<br />
+            חלקם מרשימים, חלקם מזעזעים.<br />
+            אנחנו כאן כדי להחליט איזה סמלים<br />
+            הם הטובים ביותר בישראל,<br />
+            ואיזה סמלים צריכים לעבור דחוף עיצוב מחדש.<br />
+            בכל פעם יופיעו לפניכן.ם 2 סמלים אקראיים,<br />
+            וכל מה שאתן.ם צריכות.ים לעשות<br />
+            הוא ללחוץ על זה שבעיניכן.ם ״מוצלח״ יותר.<br />
+            איך מחליטים? זו יכולה להיות תחושת בטן,<br />
+            או לפי <span onClick={() => setView("about")} style={{ color: "#c4a84f", textDecoration: "underline", cursor: "pointer" }}>מדדים קצת יותר מקצועיים</span>.<br />
+            אז.. בואו לעזור לנו לקבוע -<br />
+            <span style={{ color: "#c4a84f", fontWeight: 700 }}>מי הוא הסמל הטוב ביותר בישראל?</span>
+          </> : <>
+            כמעט לכל עיר, ישוב, מושב וקיבוץ יש סמל. חלקם מרשימים, חלקם מזעזעים.<br />
+            אנחנו כאן כדי להחליט איזה סמלים הם הטובים ביותר בישראל,<br />
+            ואיזה סמלים צריכים לעבור דחוף עיצוב מחדש.<br />
+            בכל פעם יופיעו לפניכן.ם 2 סמלים אקראיים,<br />
+            וכל מה שאתן.ם צריכות.ים לעשות הוא ללחוץ על זה שבעיניכן.ם ״מוצלח״ יותר.<br />
+            איך מחליטים? זו יכולה להיות תחושת בטן, או לפי <span onClick={() => setView("about")} style={{ color: "#c4a84f", textDecoration: "underline", cursor: "pointer" }}>מדדים קצת יותר מקצועיים</span>.<br />
+            <span style={{ color: "#c4a84f" }}>אז.. בואו לעזור לנו לקבוע - מי הוא הסמל הטוב ביותר בישראל?</span>
+          </>}
         </p>
         <div style={{ marginTop: mob ? 6 : 10, display: "flex", gap: mob ? 12 : 20, justifyContent: "center", flexWrap: "wrap", fontSize: mob ? "0.85rem" : "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
           <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
