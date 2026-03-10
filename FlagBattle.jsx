@@ -1604,7 +1604,7 @@ export default function App() {
 
       <section style={{ maxWidth: 700, margin: "0 auto", padding: "0 20px 32px" }}>
         <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: "20px 22px" }}>
-          <h3 style={{ margin: "0 0 4px", fontSize: "1.2rem", fontWeight: 700, color: "#c4a84f" }}>🏙️ לא מצאת את הדגל של העיר שלך?</h3>
+          <h3 style={{ margin: "0 0 4px", fontSize: "1.2rem", fontWeight: 700, color: "#c4a84f" }}>🏙️ לא מצאת את הסמל של העיר שלך?</h3>
           <p style={{ margin: "0 0 16px", fontSize: "1rem", color: "#e8ecf4" }}>שלח בקשה ונוסיף אותה בהקדם</p>
           <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
             <div style={{ flex: "0 0 160px" }}>
