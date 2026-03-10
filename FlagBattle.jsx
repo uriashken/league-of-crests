@@ -437,16 +437,18 @@ export default function App() {
   async function submitRequest() {
     const name = san(reqName);
     if (!name) { setReqMsg({ ok: false, t: "יש להזין שם עיר" }); return; }
-    if (reqMode === "url") {
-      if (!reqUrl.startsWith("http")) { setReqMsg({ ok: false, t: "יש להזין קישור תקין" }); return; }
-      if (!reqUrlOk) { setReqMsg({ ok: false, t: "הקישור לא נטען — בדוק אותו" }); return; }
-    } else {
-      if (!reqFile) { setReqMsg({ ok: false, t: "יש לבחור קובץ" }); return; }
+    const hasUrl = reqMode === "url" && reqUrl.startsWith("http");
+    const hasFile = reqMode === "file" && !!reqFile;
+    if (reqMode === "url" && reqUrl && !reqUrl.startsWith("http")) {
+      setReqMsg({ ok: false, t: "יש להזין קישור תקין" }); return;
+    }
+    if (hasUrl && reqUrlOk === false) {
+      setReqMsg({ ok: false, t: "הקישור לא נטען — בדוק אותו" }); return;
     }
     setReqSending(true);
     try {
-      let attachUrl = reqMode === "url" ? reqUrl : await readF(reqFile);
-      const req = { id: "r-" + Date.now(), cityName: name, url: attachUrl, mode: reqMode, submittedAt: new Date().toISOString() };
+      let attachUrl = hasUrl ? reqUrl : hasFile ? await readF(reqFile) : "";
+      const req = { id: "r-" + Date.now(), cityName: name, url: attachUrl, mode: attachUrl ? reqMode : "none", submittedAt: new Date().toISOString() };
       const next = [...requests, req];
       await storage.set(KR, JSON.stringify(next), true);
       setRequests(next);
@@ -1606,19 +1608,18 @@ export default function App() {
         <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: "20px 22px" }}>
           <h3 style={{ margin: "0 0 4px", fontSize: "1.2rem", fontWeight: 700, color: "#c4a84f" }}>🏙️ לא מצאת את סמל העיר שלך?</h3>
           <p style={{ margin: "0 0 16px", fontSize: "1rem", color: "#e8ecf4" }}>שלח בקשה ונוסיף אותה בהקדם</p>
-          <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-            <div style={{ flex: "0 0 160px" }}>
-              <input
-                style={Object.assign({}, G.inp, { fontSize: "1rem" })}
-                placeholder="שם העיר…"
-                value={reqName}
-                onChange={e => setReqName(e.target.value)}
-              />
-            </div>
-            <div style={Object.assign({}, G.modeWrap, { margin: 0, flex: "0 0 auto" })}>
-              <button style={Object.assign({}, G.modeBtn, reqMode === "url" ? G.modeBtnOn : {})} onClick={() => { setReqMode("url"); setReqFile(null); setReqPrev(null); }}>🔗 קישור</button>
-              <button style={Object.assign({}, G.modeBtn, reqMode === "file" ? G.modeBtnOn : {})} onClick={() => setReqMode("file")}>📁 קובץ</button>
-            </div>
+          <div style={{ marginBottom: 12 }}>
+            <input
+              style={Object.assign({}, G.inp, { fontSize: "1rem" })}
+              placeholder="שם העיר…"
+              value={reqName}
+              onChange={e => setReqName(e.target.value)}
+            />
+          </div>
+          <div style={{ fontSize: "0.95rem", color: "#e8ecf4", marginBottom: 10 }}>יש לך קישור או קובץ? אפשר לצרף כאן</div>
+          <div style={Object.assign({}, G.modeWrap, { margin: "0 0 10px" })}>
+            <button style={Object.assign({}, G.modeBtn, reqMode === "url" ? G.modeBtnOn : {})} onClick={() => { setReqMode("url"); setReqFile(null); setReqPrev(null); }}>🔗 קישור</button>
+            <button style={Object.assign({}, G.modeBtn, reqMode === "file" ? G.modeBtnOn : {})} onClick={() => setReqMode("file")}>📁 קובץ</button>
           </div>
           {reqMode === "url" ? (
             <div style={{ marginBottom: 12 }}>
