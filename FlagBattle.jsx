@@ -1536,7 +1536,7 @@ export default function App() {
           </div>
           <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ערים שהשתתפו בלמעלה מ-{MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "0.85rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "1rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
               <span style={{ flex: "1 1 0", minWidth: 0 }}>שם עיר</span>
               <span style={{ width: 68, textAlign: "center", flexShrink: 0 }}>סמל</span>
@@ -1556,8 +1556,8 @@ export default function App() {
                     <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                   </div>
                   <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "1rem" : "1.05rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
-                  <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#e8ecf4", textAlign: "center" }}>{city.total}</span>
-                  <span style={{ minWidth: mob ? 36 : 52, fontSize: mob ? "0.95rem" : "1rem", color: "#e8ecf4", textAlign: "center" }}>{winPct}</span>
+                  <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#c4a84f", textAlign: "center" }}>{city.total}</span>
+                  <span style={{ minWidth: mob ? 36 : 52, fontSize: mob ? "0.95rem" : "1rem", color: "#c4a84f", textAlign: "center" }}>{winPct}</span>
                 </div>
               );
             })}
@@ -1574,7 +1574,7 @@ export default function App() {
           </div>
           <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ערים עם פחות מ-{MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "0.85rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "1rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
               <span style={{ flex: "1 1 0", minWidth: 0 }}>שם עיר</span>
               <span style={{ width: 68, textAlign: "center", flexShrink: 0 }}>סמל</span>
@@ -1592,9 +1592,9 @@ export default function App() {
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
                     <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                   </div>
-                  <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "1rem" : "1.05rem", color: "#e8ecf4", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
-                  <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#e8ecf4", textAlign: "center" }}>{city.total}</span>
-                  <span style={{ minWidth: mob ? 36 : 52, fontSize: mob ? "0.95rem" : "1rem", color: "#e8ecf4", textAlign: "center" }}>{winPct}</span>
+                  <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "1rem" : "1.05rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
+                  <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#c4a84f", textAlign: "center" }}>{city.total}</span>
+                  <span style={{ minWidth: mob ? 36 : 52, fontSize: mob ? "0.95rem" : "1rem", color: "#c4a84f", textAlign: "center" }}>{winPct}</span>
                 </div>
               );
             })}
