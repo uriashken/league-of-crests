@@ -370,7 +370,12 @@ export default function App() {
     if (av.length < 2) return;
     const one = (excl) => {
       const pool = excl ? av.filter(c => c.id !== excl.id) : av;
-      const ws = pool.map(c => 1 / ((sRef.current[c.id] ? sRef.current[c.id].total : 0) + 1));
+      const ws = pool.map(c => {
+        const tot = sRef.current[c.id] ? sRef.current[c.id].total : 0;
+        const base = 1 / (tot + 1);
+        const boost = tot < MIN_BATTLES ? (MIN_BATTLES - tot) * 0.5 : 0;
+        return base + boost;
+      });
       const tw = ws.reduce((a, b) => a + b, 0);
       let r = Math.random() * tw;
       for (let i = 0; i < pool.length; i++) { r -= ws[i]; if (r <= 0) return pool[i]; }
