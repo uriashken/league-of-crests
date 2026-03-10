@@ -928,7 +928,7 @@ export default function App() {
                     </div>
                   )}
                   {smsg && <div style={{ color: smsg.ok ? "#50c864" : "#ff6b6b", fontWeight: 600, marginTop: 8 }}>{smsg.t}</div>}
-                  <button style={Object.assign({}, G.gold, { marginTop: 12, opacity: (ssaving || (smode === "url" && surlOk !== true)) ? 0.5 : 1 })} onClick={saveFlag} disabled={ssaving || (smode === "url" && surlOk !== true)}>
+                  <button style={Object.assign({}, G.gold, { marginTop: 12, opacity: (ssaving || (smode === "url" && surlOk !== true)) ? 0.5 : 1 })} onClick={saveFlag} onMouseDown={e => e.preventDefault()} disabled={ssaving || (smode === "url" && surlOk !== true)}>
                     {ssaving ? "שומר…" : smode === "url" && surlOk === null && surl.startsWith("http") ? "ממתין לטעינה…" : "שמור סמל ✓"}
                   </button>
                   {(() => {
