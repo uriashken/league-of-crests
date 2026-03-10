@@ -1387,20 +1387,20 @@ export default function App() {
             <span style={{ color: "#c4a84f" }}>אז.. בואו לעזור לנו לקבוע - מי הוא הסמל הטוב ביותר בישראל?</span>
           </>}
         </p>
-        <div style={{ marginTop: mob ? 6 : 10, display: "flex", gap: mob ? 12 : 20, justifyContent: "center", flexWrap: "wrap", fontSize: mob ? "0.85rem" : "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
-          <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
-          <span>{"מספר ערים משתתפות: " + all.filter(c => !failed[c.id]).length}</span>
-        </div>
-      </header>
-
-      <section style={G.arena}>
-        <div style={{ marginBottom: mob ? 12 : 20 }}>
+        <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
           <button onClick={() => setView("about")} style={{ background: "rgba(196,168,79,.12)", border: "1px solid rgba(196,168,79,.45)", borderRadius: 10, padding: mob ? "7px 18px" : "10px 28px", color: "#f0d88a", fontSize: mob ? "0.82rem" : "0.95rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", letterSpacing: "0.03em" }}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(196,168,79,.22)"}
             onMouseLeave={e => e.currentTarget.style.background = "rgba(196,168,79,.12)"}>
             אודות ›
           </button>
         </div>
+        <div style={{ marginTop: mob ? 14 : 20, display: "flex", gap: mob ? 12 : 20, justifyContent: "center", flexWrap: "wrap", fontSize: mob ? "0.85rem" : "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
+          <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
+          <span>{"מספר ערים משתתפות: " + all.filter(c => !failed[c.id]).length}</span>
+        </div>
+      </header>
+
+      <section style={G.arena}>
         <div style={{ fontSize: mob ? "0.92rem" : "1.15rem", color: "#8fa3c4", marginBottom: mob ? 14 : 26 }}>מבין שני הסמלים הבאים, מי בעיניך מוצלח יותר?</div>
         {pair && (
           <div style={G.frow}>
