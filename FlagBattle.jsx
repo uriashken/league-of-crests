@@ -52,6 +52,7 @@ const KR = "il_flag_requests_v1";
 const KPend = "il_flag_pending_v1";
 const KContact = "il_contact_messages_v1";
 const KArchive = "il_archive_v1";
+const KSessions = "il_sessions_v1";
 
 
 function wikiUrl(f) {
@@ -309,6 +310,7 @@ export default function App() {
   const [reqSending, setReqSending] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [archive, setArchive] = useState([]);
+  const [sessionData, setSessionData] = useState({ days: {}, totalSessions: 0 });
   const [ctName, setCtName] = useState("");
   const [ctEmail, setCtEmail] = useState("");
   const [ctMsg, setCtMsg] = useState("");
@@ -337,6 +339,7 @@ export default function App() {
       try { const r = await storage.get(KPend, true).catch(() => null); if (r && r.value) setPending(JSON.parse(r.value)); } catch (e) {}
       try { const r = await storage.get(KContact, true).catch(() => null); if (r && r.value) setContacts(JSON.parse(r.value)); } catch (e) {}
       try { const r = await storage.get(KArchive, true).catch(() => null); if (r && r.value) setArchive(JSON.parse(r.value)); } catch (e) {}
+      try { const r = await storage.get(KSessions, true).catch(() => null); if (r && r.value) setSessionData(JSON.parse(r.value)); } catch (e) {}
       try {
         const r = await storage.get(KP, true).catch(() => null);
         if (r && r.value) setPassHash(r.value);
@@ -395,6 +398,15 @@ export default function App() {
     const now = Date.now();
     if (now - lastVote.current < 1500) return;
     lastVote.current = now; anim.current = true; setVoted(wid);
+    if (!sessionStorage.getItem("il_sess")) {
+      sessionStorage.setItem("il_sess", "1");
+      const today = new Date().toISOString().slice(0, 10);
+      setSessionData(prev => {
+        const next = { days: Object.assign({}, prev.days, { [today]: (prev.days[today] || 0) + 1 }), totalSessions: prev.totalSessions + 1 };
+        storage.set(KSessions, JSON.stringify(next)).catch(() => {});
+        return next;
+      });
+    }
     setStats(prev => {
       const next = Object.assign({}, prev);
       [wid, lid].forEach(id => { next[id] = next[id] ? Object.assign({}, next[id]) : { wins: 0, total: 0, elo: ELO_BASE }; next[id].total++; });
@@ -754,6 +766,7 @@ export default function App() {
       { id: "add", l: "✏️ הוספה ידנית" },
       { id: "search", l: "🔍 עריכה" },
       { id: "import", l: "📥 ייבוא גיליון" },
+      { id: "stats", l: "📊 סטטיסטיקה" },
       { id: "settings", l: "⚙️ הגדרות" },
       { id: "security", l: "🛡️ אבטחה" },
     ];
@@ -1127,6 +1140,53 @@ export default function App() {
               )}
             </div>
           )}
+
+          {tab === "stats" && (() => {
+            const today = new Date().toISOString().slice(0, 10);
+            const avgVotes = sessionData.totalSessions > 0 ? (battles / sessionData.totalSessions).toFixed(1) : "—";
+            const todaySessions = sessionData.days[today] || 0;
+            const last30 = Array.from({ length: 30 }, (_, i) => {
+              const d = new Date(); d.setDate(d.getDate() - (29 - i));
+              const key = d.toISOString().slice(0, 10);
+              return { key, label: d.toLocaleDateString("he-IL", { day: "numeric", month: "numeric" }), count: sessionData.days[key] || 0 };
+            });
+            const maxCount = Math.max(...last30.map(d => d.count), 1);
+            return (
+              <div style={G.card}>
+                <h2 style={G.cTitle}>📊 סטטיסטיקה</h2>
+                <div style={{ display: "flex", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
+                  <div style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: "16px 24px", flex: 1, minWidth: 140 }}>
+                    <div style={{ fontSize: "0.75rem", color: "#5a7099", marginBottom: 6 }}>סשנים היום</div>
+                    <div style={{ fontSize: "2rem", fontWeight: 800, color: "#c4a84f" }}>{todaySessions}</div>
+                  </div>
+                  <div style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: "16px 24px", flex: 1, minWidth: 140 }}>
+                    <div style={{ fontSize: "0.75rem", color: "#5a7099", marginBottom: 6 }}>סה״כ סשנים</div>
+                    <div style={{ fontSize: "2rem", fontWeight: 800, color: "#e8ecf4" }}>{sessionData.totalSessions.toLocaleString()}</div>
+                  </div>
+                  <div style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: "16px 24px", flex: 1, minWidth: 140 }}>
+                    <div style={{ fontSize: "0.75rem", color: "#5a7099", marginBottom: 6 }}>ממוצע הצבעות לסשן</div>
+                    <div style={{ fontSize: "2rem", fontWeight: 800, color: "#50c864" }}>{avgVotes}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "#8fa3c4", marginBottom: 12, fontWeight: 700 }}>סשנים ב-30 ימים האחרונים</div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 120, padding: "0 4px" }}>
+                  {last30.map(d => (
+                    <div key={d.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, height: "100%" }}>
+                      <div style={{ flex: 1, display: "flex", alignItems: "flex-end", width: "100%" }}>
+                        <div style={{ width: "100%", background: d.key === today ? "#c4a84f" : "rgba(100,140,200,.5)", borderRadius: "3px 3px 0 0", height: d.count > 0 ? Math.max(4, (d.count / maxCount) * 100) + "%" : "2px", transition: "height .3s" }} title={d.label + ": " + d.count + " סשנים"} />
+                      </div>
+                      {d.key === today && <div style={{ fontSize: "0.55rem", color: "#c4a84f", fontWeight: 700 }}>היום</div>}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "#5a7099", marginTop: 4, paddingRight: 4 }}>
+                  <span>{last30[0]?.label}</span>
+                  <span>{last30[14]?.label}</span>
+                  <span>{last30[29]?.label}</span>
+                </div>
+              </div>
+            );
+          })()}
 
           {tab === "settings" && (
             <div>
