@@ -1529,9 +1529,9 @@ export default function App() {
             <button style={{ background: "transparent", border: "1px solid rgba(196,168,79,.3)", color: "#c4a84f", borderRadius: 8, padding: "5px 11px", fontSize: "0.9rem", cursor: "pointer" }}
               onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
-          <div style={{ fontSize: "0.88rem", color: "#5a7099", marginBottom: 12 }}>ערים שהשתתפו בלמעלה מ-{MIN_BATTLES} קרבות</div>
+          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ערים שהשתתפו בלמעלה מ-{MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "0.85rem", color: "#5a7099", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "0.85rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
               <span style={{ flex: "1 1 0", minWidth: 0 }}>שם עיר</span>
               <span style={{ width: 68, textAlign: "center", flexShrink: 0 }}>סמל</span>
@@ -1551,8 +1551,8 @@ export default function App() {
                     <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                   </div>
                   <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "1rem" : "1.05rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
-                  <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
-                  <span style={{ minWidth: mob ? 36 : 52, fontSize: mob ? "0.95rem" : "1rem", color: "#5a7099", textAlign: "center" }}>{winPct}</span>
+                  <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#e8ecf4", textAlign: "center" }}>{city.total}</span>
+                  <span style={{ minWidth: mob ? 36 : 52, fontSize: mob ? "0.95rem" : "1rem", color: "#e8ecf4", textAlign: "center" }}>{winPct}</span>
                 </div>
               );
             })}
@@ -1567,9 +1567,9 @@ export default function App() {
             <button style={{ background: "transparent", border: "1px solid rgba(143,163,196,.3)", color: "#8fa3c4", borderRadius: 8, padding: "5px 11px", fontSize: "0.9rem", cursor: "pointer" }}
               onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
-          <div style={{ fontSize: "0.88rem", color: "#5a7099", marginBottom: 12 }}>ערים עם פחות מ-{MIN_BATTLES} קרבות</div>
+          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ערים עם פחות מ-{MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "0.85rem", color: "#5a7099", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "0.85rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
               <span style={{ flex: "1 1 0", minWidth: 0 }}>שם עיר</span>
               <span style={{ width: 68, textAlign: "center", flexShrink: 0 }}>סמל</span>
@@ -1581,15 +1581,15 @@ export default function App() {
               const winPct = city.total > 0 ? Math.round((city.wins || 0) / city.total * 100) + "%" : "—";
               return (
                 <div key={city.id} style={G.lbrow}>
-                  <span style={{ minWidth: 26, textAlign: "center", color: "#8fa3c4", fontSize: "1.05rem" }}>{i + 1}</span>
+                  <span style={{ minWidth: 26, textAlign: "center", color: "#e8ecf4", fontSize: "1.05rem" }}>{i + 1}</span>
                   <span style={{ flex: "1 1 0", minWidth: 0, fontSize: mob ? "1rem" : "1.1rem", color: "#e8ecf4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{city.name}</span>
                   <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
                     <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
                   </div>
-                  <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "1rem" : "1.05rem", color: "#8fa3c4", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
-                  <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
-                  <span style={{ minWidth: mob ? 36 : 52, fontSize: mob ? "0.95rem" : "1rem", color: "#5a7099", textAlign: "center" }}>{winPct}</span>
+                  <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "1rem" : "1.05rem", color: "#e8ecf4", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
+                  <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#e8ecf4", textAlign: "center" }}>{city.total}</span>
+                  <span style={{ minWidth: mob ? 36 : 52, fontSize: mob ? "0.95rem" : "1rem", color: "#e8ecf4", textAlign: "center" }}>{winPct}</span>
                 </div>
               );
             })}
@@ -1600,7 +1600,7 @@ export default function App() {
       <section style={{ maxWidth: 700, margin: "0 auto", padding: "0 20px 32px" }}>
         <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: "20px 22px" }}>
           <h3 style={{ margin: "0 0 4px", fontSize: "1.2rem", fontWeight: 700, color: "#c4a84f" }}>🏙️ לא מצאת את הדגל של העיר שלך?</h3>
-          <p style={{ margin: "0 0 16px", fontSize: "1rem", color: "#5a7099" }}>שלח בקשה ונוסיף אותה בהקדם</p>
+          <p style={{ margin: "0 0 16px", fontSize: "1rem", color: "#e8ecf4" }}>שלח בקשה ונוסיף אותה בהקדם</p>
           <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
             <div style={{ flex: "0 0 160px" }}>
               <input
