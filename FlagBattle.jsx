@@ -1363,7 +1363,13 @@ export default function App() {
       </div>
       <header style={G.hdr}>
         <h1 style={G.title}>League of Crests</h1>
-        {!mob && <p style={{ margin: "8px 0 0", fontSize: "1rem", color: "#8fa3c4" }}>בואו להכריע מי הישובים עם הסמלים המוצלחים ביותר בישראל</p>}
+        <p style={{ margin: "14px 0 0", fontSize: mob ? "1rem" : "1.2rem", fontWeight: 700, color: "#e8ecf4", textAlign: "center", lineHeight: 1.8, maxWidth: 640 }}>
+          כמעט לכל עיר, ישוב, מושב וקיבוץ יש סמל. חלקם מרשימים, חלקם מזעזעים.<br />
+          אנחנו כאן כדי להחליט איזה סמלים הם הטובים ביותר בישראל, ואיזה סמלים צריכים לעבור דחוף עיצוב מחדש.<br />
+          בכל פעם יופיעו לפניכן.ם 2 סמלים אקראיים, וכל מה שאתן.ם צריכות.ים לעשות הוא ללחוץ על זה שבעיניכן.ם ״מוצלח״ יותר.<br />
+          איך מחליטים? זו יכולה להיות תחושת בטן, או לפי מדדים קצת יותר מקצועיים.<br />
+          <span style={{ color: "#c4a84f" }}>אז.. בואו לעזור לנו לקבוע - מי הוא הסמל הטוב ביותר בישראל?</span>
+        </p>
         <div style={{ marginTop: mob ? 6 : 10, display: "flex", gap: mob ? 12 : 20, justifyContent: "center", flexWrap: "wrap", fontSize: mob ? "0.85rem" : "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
           <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
           <span>{"מספר ערים משתתפות: " + all.filter(c => !failed[c.id]).length}</span>
