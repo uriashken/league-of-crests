@@ -401,8 +401,14 @@ export default function App() {
     if (!sessionStorage.getItem("il_sess")) {
       sessionStorage.setItem("il_sess", "1");
       const today = new Date().toISOString().slice(0, 10);
+      const currentBattles = battles;
       setSessionData(prev => {
-        const next = { days: Object.assign({}, prev.days, { [today]: (prev.days[today] || 0) + 1 }), totalSessions: prev.totalSessions + 1 };
+        const isFirst = prev.totalSessions === 0;
+        const next = {
+          days: Object.assign({}, prev.days, { [today]: (prev.days[today] || 0) + 1 }),
+          totalSessions: prev.totalSessions + 1,
+          baseVotes: isFirst ? currentBattles : (prev.baseVotes ?? currentBattles),
+        };
         storage.set(KSessions, JSON.stringify(next)).catch(() => {});
         return next;
       });
@@ -1143,7 +1149,13 @@ export default function App() {
 
           {tab === "stats" && (() => {
             const today = new Date().toISOString().slice(0, 10);
-            const avgVotes = sessionData.totalSessions > 0 ? (battles / sessionData.totalSessions).toFixed(1) : "—";
+            const trackedVotes = sessionData.baseVotes != null ? battles - sessionData.baseVotes : 0;
+            const avgVotes = sessionData.totalSessions > 0 && sessionData.baseVotes != null ? (trackedVotes / sessionData.totalSessions).toFixed(1) : "—";
+            const resetSessions = async () => {
+              const fresh = { days: {}, totalSessions: 0, baseVotes: null };
+              await storage.set(KSessions, JSON.stringify(fresh));
+              setSessionData(fresh);
+            };
             const todaySessions = sessionData.days[today] || 0;
             const last30 = Array.from({ length: 30 }, (_, i) => {
               const d = new Date(); d.setDate(d.getDate() - (29 - i));
@@ -1183,6 +1195,14 @@ export default function App() {
                   <span>{last30[0]?.label}</span>
                   <span>{last30[14]?.label}</span>
                   <span>{last30[29]?.label}</span>
+                </div>
+                <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,.06)" }}>
+                  <button style={Object.assign({}, G.ghost, { fontSize: "0.78rem", color: "#ff6b6b", borderColor: "rgba(255,107,107,.3)" })} onClick={resetSessions}>
+                    אפס נתוני סשנים
+                  </button>
+                  {sessionData.baseVotes == null && sessionData.totalSessions > 0 && (
+                    <div style={{ fontSize: "0.75rem", color: "#ff6b6b", marginTop: 8 }}>⚠️ נתוני ממוצע אינם זמינים — נשמרו לפני עדכון המעקב. אפס כדי להתחיל מחדש.</div>
+                  )}
                 </div>
               </div>
             );
