@@ -427,7 +427,6 @@ export default function App() {
     const prevWins = prevMatch[wid] || 0;
     const displayPct = prevTotal > 0 ? Math.round(prevWins / prevTotal * 100) : 67; // 67 = demo fallback
     setMatchStat({ pct: displayPct, winnerId: wid });
-    setTimeout(() => setMatchStat(null), 3000);
     setMatchups(prev => {
       const cur = prev[matchKey] || {};
       const next = { ...prev, [matchKey]: { ...cur, [wid]: (cur[wid] || 0) + 1 } };
@@ -463,7 +462,7 @@ export default function App() {
       storage.set(KS, JSON.stringify({ stats: next, totalBattles: nb }), true).catch(() => {});
       return next;
     });
-    setTimeout(() => { setVoted(null); anim.current = false; pick(all, pair); }, 950);
+    setTimeout(() => { setMatchStat(null); setVoted(null); anim.current = false; pick(all, pair); }, 3000);
   }, [voted, pair, all, battles, pick]);
 
   async function submitRequest() {
