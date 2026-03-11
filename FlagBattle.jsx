@@ -1541,12 +1541,12 @@ export default function App() {
                 <span style={{ color: "#c4a84f", fontWeight: 700, fontSize: mob ? "0.8rem" : "0.95rem", whiteSpace: "nowrap", flexShrink: 0 }}>נוספו לאחרונה:</span>
                 <div style={{ overflow: "hidden", flex: 1, borderRadius: 20, background: "rgba(255,255,255,.06)", padding: mob ? "5px 14px" : "6px 18px", direction: "ltr" }}>
                   {(() => {
-                    const names = recent.map(c => c.name).join("  ·  ");
+                    const names = recent.map(c => c.name).join("  ·  ") + "  ·  ";
                     const tickerDur = Math.max(8, names.length * 0.25);
                     return (
                       <div style={{ display: "inline-flex", whiteSpace: "nowrap", animation: `lc-ticker ${tickerDur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem" }}>
-                        <span style={{ color: "#e8ecf4", paddingRight: 40 }}>{names}</span>
-                        <span style={{ color: "#e8ecf4", paddingRight: 40 }}>{names}</span>
+                        <span style={{ color: "#e8ecf4" }}>{names}</span>
+                        <span style={{ color: "#e8ecf4" }}>{names}</span>
                       </div>
                     );
                   })()}
