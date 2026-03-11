@@ -47,7 +47,7 @@ const CITIES = [
 const KS = "il_flag_battles_v3";
 const KC = "il_custom_flags_v2";
 const KO = "il_flag_overrides_v1";
-const KP = "il_admin_pass_hash_v1";
+const KP = "il_admin_pass_hash_v2";
 const KR = "il_flag_requests_v1";
 const KPend = "il_flag_pending_v1";
 const KContact = "il_contact_messages_v1";
@@ -343,7 +343,7 @@ export default function App() {
       try {
         const r = await storage.get(KP, true).catch(() => null);
         if (r && r.value) setPassHash(r.value);
-        else { const h = await hashStr("1234"); await storage.set(KP, h, true).catch(() => {}); setPassHash(h); }
+        else { const h = await hashStr("flags16201"); await storage.set(KP, h, true).catch(() => {}); setPassHash(h); }
       } catch (e) {}
       setLoading(false);
     })();
@@ -1698,7 +1698,7 @@ export default function App() {
             </button>
           ))}
         </div>
-        <button style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.14)", fontSize: "0.76rem", cursor: "pointer" }}
+        <button style={{ background: "transparent", border: "none", color: "transparent", fontSize: "0.76rem", cursor: "default", userSelect: "none" }}
           onClick={() => setShowLogin(true)}>⚙️ אדמין</button>
       </footer>
 
