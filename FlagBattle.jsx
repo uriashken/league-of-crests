@@ -108,7 +108,7 @@ function wilson(wins, total) {
 }
 
 const ELO_BASE = 0;
-const MIN_BATTLES = 10;
+const MIN_BATTLES = 5;
 function confPenalty(total) { return Math.round(3 * ELO_K / Math.sqrt(total + 1)); }
 const ELO_K = 32;
 
