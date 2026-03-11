@@ -1536,13 +1536,20 @@ export default function App() {
           const dur = Math.max(12, recent.length * 5);
           return (
             <>
-              <style>{`@keyframes lc-ticker { 0% { transform: translateX(110%); } 100% { transform: translateX(-110%); } }`}</style>
+              <style>{`@keyframes lc-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }`}</style>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, margin: "10px auto 0", maxWidth: mob ? 340 : 560 }}>
                 <span style={{ color: "#c4a84f", fontWeight: 700, fontSize: mob ? "0.8rem" : "0.95rem", whiteSpace: "nowrap", flexShrink: 0 }}>נוספו לאחרונה:</span>
-                <div style={{ overflow: "hidden", flex: 1, borderRadius: 20, background: "rgba(255,255,255,.06)", padding: mob ? "5px 14px" : "6px 18px" }}>
-                  <div style={{ whiteSpace: "nowrap", display: "inline-block", animation: `lc-ticker ${dur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem" }}>
-                    <span style={{ color: "#e8ecf4" }}>{recent.map(c => c.name).join("   ·   ")}</span>
-                  </div>
+                <div style={{ overflow: "hidden", flex: 1, borderRadius: 20, background: "rgba(255,255,255,.06)", padding: mob ? "5px 14px" : "6px 18px", direction: "ltr" }}>
+                  {(() => {
+                    const names = recent.map(c => c.name).join("  ·  ");
+                    const tickerDur = Math.max(8, names.length * 0.25);
+                    return (
+                      <div style={{ display: "inline-flex", whiteSpace: "nowrap", animation: `lc-ticker ${tickerDur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem" }}>
+                        <span style={{ color: "#e8ecf4", paddingRight: 40 }}>{names}</span>
+                        <span style={{ color: "#e8ecf4", paddingRight: 40 }}>{names}</span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </>
