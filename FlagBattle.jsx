@@ -351,6 +351,20 @@ export default function App() {
 
   useEffect(() => { sRef.current = stats; }, [stats]);
 
+  useEffect(() => {
+    const poll = setInterval(async () => {
+      try {
+        const r = await storage.get(KS);
+        if (r && r.value) {
+          const d = JSON.parse(r.value);
+          setStats(d.stats || {});
+          setBattles(d.totalBattles || 0);
+        }
+      } catch (e) {}
+    }, 30000);
+    return () => clearInterval(poll);
+  }, []);
+
   const resetIdle = useCallback(() => {
     clearTimeout(idleRef.current);
     if (view === "admin") idleRef.current = setTimeout(() => { setView("game"); setSessExp(null); }, 1800000);
