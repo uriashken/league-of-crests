@@ -462,7 +462,7 @@ export default function App() {
       storage.set(KS, JSON.stringify({ stats: next, totalBattles: nb }), true).catch(() => {});
       return next;
     });
-    setTimeout(() => { setMatchStat(null); setVoted(null); anim.current = false; pick(all, pair); }, 3000);
+    setTimeout(() => { setMatchStat(null); setVoted(null); anim.current = false; pick(all, pair); }, 2000);
   }, [voted, pair, all, battles, pick]);
 
   async function submitRequest() {
