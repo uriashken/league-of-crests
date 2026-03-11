@@ -425,10 +425,9 @@ export default function App() {
     const prevMatch = matchups[matchKey] || {};
     const prevTotal = (prevMatch[wid] || 0) + (prevMatch[lid] || 0);
     const prevWins = prevMatch[wid] || 0;
-    if (prevTotal > 0) {
-      setMatchStat(Math.round(prevWins / prevTotal * 100));
-      setTimeout(() => setMatchStat(null), 3000);
-    }
+    const displayPct = prevTotal > 0 ? Math.round(prevWins / prevTotal * 100) : 67; // 67 = demo fallback
+    setMatchStat(displayPct);
+    setTimeout(() => setMatchStat(null), 3000);
     setMatchups(prev => {
       const cur = prev[matchKey] || {};
       const next = { ...prev, [matchKey]: { ...cur, [wid]: (cur[wid] || 0) + 1 } };
