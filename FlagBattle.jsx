@@ -426,7 +426,7 @@ export default function App() {
     const prevTotal = (prevMatch[wid] || 0) + (prevMatch[lid] || 0);
     const prevWins = prevMatch[wid] || 0;
     const displayPct = prevTotal > 0 ? Math.round(prevWins / prevTotal * 100) : 67; // 67 = demo fallback
-    setMatchStat(displayPct);
+    setMatchStat({ pct: displayPct, winnerId: wid });
     setTimeout(() => setMatchStat(null), 3000);
     setMatchups(prev => {
       const cur = prev[matchKey] || {};
@@ -1556,9 +1556,9 @@ export default function App() {
                             }} />
                       }
                       {isW && <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(80,200,100,.9)", color: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>✓ ניצח!</div>}
-                      {isW && matchStat !== null && (
-                        <div style={{ position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,.75)", color: "#fff", borderRadius: 12, padding: "6px 14px", fontSize: "0.85rem", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
-                          {matchStat}% חשבו כמוך
+                      {matchStat && matchStat.winnerId === city.id && (
+                        <div style={{ position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,.82)", color: "#fff", borderRadius: 16, padding: "12px 26px", fontSize: "1.7rem", fontWeight: 700, whiteSpace: "nowrap", textAlign: "center" }}>
+                          {matchStat.pct}% חשבו כמוך
                         </div>
                       )}
                     </div>
