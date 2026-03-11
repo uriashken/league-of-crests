@@ -1348,7 +1348,7 @@ export default function App() {
             const headerRow = (
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "0.72rem", color: "#5a7099", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
                 <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
-                <span style={{ flex: "1 1 0", minWidth: 0 }}>שם עיר</span>
+                <span style={{ flex: "1 1 0", minWidth: 0 }}>שם הישוב</span>
                 <span style={{ width: 68, textAlign: "center", flexShrink: 0 }}>סמל</span>
                 <span style={{ minWidth: 44, textAlign: "center" }}>ניקוד</span>
                 <span style={{ minWidth: 44, textAlign: "center" }}>קרבות</span>
@@ -1554,15 +1554,15 @@ export default function App() {
       {confirmed.length > 0 && (
         <section style={G.lb}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#c4a84f" }}>🏆 הערים המובילות</h2>
+            <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#c4a84f" }}>🏆 הישובים המובילים</h2>
             <button style={{ background: "transparent", border: "1px solid rgba(196,168,79,.3)", color: "#c4a84f", borderRadius: 8, padding: "5px 11px", fontSize: "0.9rem", cursor: "pointer" }}
               onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
-          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ערים שהשתתפו בלמעלה מ-{MIN_BATTLES} קרבות</div>
+          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ישובים שהשתתפו בלמעלה מ-{MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "1rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
-              <span style={{ flex: "1 1 0", minWidth: 0 }}>שם עיר</span>
+              <span style={{ flex: "1 1 0", minWidth: 0 }}>שם הישוב</span>
               <span style={{ width: 68, textAlign: "center", flexShrink: 0 }}>סמל</span>
               <span style={{ minWidth: mob ? 32 : 44, textAlign: "center" }}>ניקוד</span>
               <span style={{ minWidth: mob ? 28 : 44, textAlign: "center" }}>קרבות</span>
@@ -1596,11 +1596,11 @@ export default function App() {
             <button style={{ background: "transparent", border: "1px solid rgba(143,163,196,.3)", color: "#8fa3c4", borderRadius: 8, padding: "5px 11px", fontSize: "0.9rem", cursor: "pointer" }}
               onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
-          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ערים עם פחות מ-{MIN_BATTLES} קרבות</div>
+          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ישובים עם פחות מ-{MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "1rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
-              <span style={{ flex: "1 1 0", minWidth: 0 }}>שם עיר</span>
+              <span style={{ flex: "1 1 0", minWidth: 0 }}>שם הישוב</span>
               <span style={{ width: 68, textAlign: "center", flexShrink: 0 }}>סמל</span>
               <span style={{ minWidth: mob ? 32 : 44, textAlign: "center" }}>ניקוד</span>
               <span style={{ minWidth: mob ? 28 : 44, textAlign: "center" }}>קרבות</span>
@@ -1628,7 +1628,7 @@ export default function App() {
 
       <section style={{ maxWidth: 700, margin: "0 auto", padding: "0 20px 32px" }}>
         <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: "20px 22px" }}>
-          <h3 style={{ margin: "0 0 4px", fontSize: "1.2rem", fontWeight: 700, color: "#c4a84f" }}>🏙️ לא מצאת את סמל העיר שלך?</h3>
+          <h3 style={{ margin: "0 0 4px", fontSize: "1.2rem", fontWeight: 700, color: "#c4a84f" }}>🏙️ לא מצאת את סמל הישוב שלך?</h3>
           <p style={{ margin: "0 0 16px", fontSize: "1rem", color: "#e8ecf4" }}>שלח בקשה ונוסיף אותה בהקדם</p>
           <div style={{ marginBottom: 12 }}>
             <input
