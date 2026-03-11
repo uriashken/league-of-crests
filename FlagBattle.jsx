@@ -53,6 +53,7 @@ const KPend = "il_flag_pending_v1";
 const KContact = "il_contact_messages_v1";
 const KArchive = "il_archive_v1";
 const KSessions = "il_sessions_v1";
+const KM = "il_matchups_v1";
 
 
 function wikiUrl(f) {
@@ -311,6 +312,8 @@ export default function App() {
   const [contacts, setContacts] = useState([]);
   const [archive, setArchive] = useState([]);
   const [sessionData, setSessionData] = useState({ days: {}, totalSessions: 0 });
+  const [matchups, setMatchups] = useState({});
+  const [matchStat, setMatchStat] = useState(null);
   const [ctName, setCtName] = useState("");
   const [ctEmail, setCtEmail] = useState("");
   const [ctMsg, setCtMsg] = useState("");
@@ -340,6 +343,7 @@ export default function App() {
       try { const r = await storage.get(KContact, true).catch(() => null); if (r && r.value) setContacts(JSON.parse(r.value)); } catch (e) {}
       try { const r = await storage.get(KArchive, true).catch(() => null); if (r && r.value) setArchive(JSON.parse(r.value)); } catch (e) {}
       try { const r = await storage.get(KSessions, true).catch(() => null); if (r && r.value) setSessionData(JSON.parse(r.value)); } catch (e) {}
+      try { const r = await storage.get(KM).catch(() => null); if (r && r.value) setMatchups(JSON.parse(r.value)); } catch (e) {}
       try {
         const r = await storage.get(KP, true).catch(() => null);
         if (r && r.value) setPassHash(r.value);
@@ -417,6 +421,20 @@ export default function App() {
     const now = Date.now();
     if (now - lastVote.current < 1500) return;
     lastVote.current = now; anim.current = true; setVoted(wid);
+    const matchKey = [wid, lid].sort().join("|");
+    const prevMatch = matchups[matchKey] || {};
+    const prevTotal = (prevMatch[wid] || 0) + (prevMatch[lid] || 0);
+    const prevWins = prevMatch[wid] || 0;
+    if (prevTotal > 0) {
+      setMatchStat(Math.round(prevWins / prevTotal * 100));
+      setTimeout(() => setMatchStat(null), 3000);
+    }
+    setMatchups(prev => {
+      const cur = prev[matchKey] || {};
+      const next = { ...prev, [matchKey]: { ...cur, [wid]: (cur[wid] || 0) + 1 } };
+      storage.set(KM, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
     if (!sessionStorage.getItem("il_sess")) {
       sessionStorage.setItem("il_sess", "1");
       const today = new Date().toISOString().slice(0, 10);
@@ -1539,6 +1557,11 @@ export default function App() {
                             }} />
                       }
                       {isW && <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(80,200,100,.9)", color: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>✓ ניצח!</div>}
+                      {isW && matchStat !== null && (
+                        <div style={{ position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)", background: "rgba(0,0,0,.75)", color: "#fff", borderRadius: 12, padding: "6px 14px", fontSize: "0.85rem", fontWeight: 600, whiteSpace: "nowrap", textAlign: "center" }}>
+                          {matchStat}% חשבו כמוך
+                        </div>
+                      )}
                     </div>
                     <div style={{ fontSize: mob ? "1.1rem" : "clamp(1.2rem,3vw,1.7rem)", fontWeight: 700, color: "#e8ecf4" }}>{city.name}</div>
                   </button>
