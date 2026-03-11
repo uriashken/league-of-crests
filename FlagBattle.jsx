@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { storage } from "./src/firebase.js";
 
 const CITIES = [
-  { id: "tel-aviv", name: "תל אביב", flag: "Flag_of_Tel_Aviv.svg" },
+  { id: "tel-aviv", name: "תל אביב-יפו", flag: "Flag_of_Tel_Aviv.svg" },
   { id: "jerusalem", name: "ירושלים", flag: "Flag_of_Jerusalem.svg" },
   { id: "haifa", name: "חיפה", flag: "Flag_of_Haifa.svg" },
   { id: "beer-sheva", name: "באר שבע", flag: "Flag_of_Be%27er_Sheva.svg" },
