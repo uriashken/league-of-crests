@@ -1592,7 +1592,7 @@ export default function App() {
       {provisional.length > 0 && (
         <section style={G.lb}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#8fa3c4" }}>⏳ ערים בשלבי מיון</h2>
+            <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#8fa3c4" }}>⏳ ישובים בשלבי מיון</h2>
             <button style={{ background: "transparent", border: "1px solid rgba(143,163,196,.3)", color: "#8fa3c4", borderRadius: 8, padding: "5px 11px", fontSize: "0.9rem", cursor: "pointer" }}
               onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
