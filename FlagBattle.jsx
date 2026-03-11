@@ -1529,6 +1529,23 @@ export default function App() {
           <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
           <span>{"מספר ישובים משתתפים:" + all.filter(c => !failed[c.id]).length}</span>
         </div>
+        {(() => {
+          const recent = custom.filter(c => c.addedAt && Date.now() - new Date(c.addedAt).getTime() < 86400000);
+          if (!recent.length) return null;
+          const text = "נוספו לאחרונה:  " + recent.map(c => c.name).join("   ·   ");
+          const dur = Math.max(12, recent.length * 5);
+          return (
+            <>
+              <style>{`@keyframes lc-ticker { 0% { transform: translateX(110%); } 100% { transform: translateX(-110%); } }`}</style>
+              <div style={{ overflow: "hidden", maxWidth: mob ? 300 : 480, margin: "10px auto 0", borderRadius: 20, background: "rgba(255,255,255,.06)", padding: mob ? "5px 14px" : "6px 18px" }}>
+                <div style={{ whiteSpace: "nowrap", display: "inline-block", animation: `lc-ticker ${dur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem" }}>
+                  <span style={{ color: "#c4a84f", fontWeight: 700 }}>נוספו לאחרונה: </span>
+                  <span style={{ color: "#e8ecf4" }}>{recent.map(c => c.name).join("   ·   ")}</span>
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </header>
 
       <section style={G.arena}>
