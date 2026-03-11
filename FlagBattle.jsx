@@ -408,11 +408,12 @@ export default function App() {
       const today = new Date().toISOString().slice(0, 10);
       const currentBattles = battles;
       setSessionData(prev => {
-        const isFirst = prev.totalSessions === 0;
+        const prevVotes = Math.max(0, currentBattles - (prev.lastSessionBattles ?? currentBattles));
         const next = {
           days: Object.assign({}, prev.days, { [today]: (prev.days[today] || 0) + 1 }),
           totalSessions: prev.totalSessions + 1,
-          baseVotes: isFirst ? currentBattles : (prev.baseVotes ?? currentBattles),
+          totalVotes: (prev.totalVotes || 0) + prevVotes,
+          lastSessionBattles: currentBattles,
         };
         storage.set(KSessions, JSON.stringify(next)).catch(() => {});
         return next;
@@ -1165,10 +1166,11 @@ export default function App() {
 
           {tab === "stats" && (() => {
             const today = new Date().toISOString().slice(0, 10);
-            const trackedVotes = sessionData.baseVotes != null ? battles - sessionData.baseVotes : 0;
-            const avgVotes = sessionData.totalSessions > 0 && sessionData.baseVotes != null ? (trackedVotes / sessionData.totalSessions).toFixed(1) : "—";
+            const currentSessionVotes = Math.max(0, battles - (sessionData.lastSessionBattles ?? battles));
+            const allTrackedVotes = (sessionData.totalVotes || 0) + currentSessionVotes;
+            const avgVotes = sessionData.totalSessions > 0 ? (allTrackedVotes / sessionData.totalSessions).toFixed(1) : "—";
             const resetSessions = async () => {
-              const fresh = { days: {}, totalSessions: 0, baseVotes: null };
+              const fresh = { days: {}, totalSessions: 0, totalVotes: 0, lastSessionBattles: null };
               await storage.set(KSessions, JSON.stringify(fresh));
               setSessionData(fresh);
             };
@@ -1216,9 +1218,6 @@ export default function App() {
                   <button style={Object.assign({}, G.ghost, { fontSize: "0.78rem", color: "#ff6b6b", borderColor: "rgba(255,107,107,.3)" })} onClick={resetSessions}>
                     אפס נתוני סשנים
                   </button>
-                  {sessionData.baseVotes == null && sessionData.totalSessions > 0 && (
-                    <div style={{ fontSize: "0.75rem", color: "#ff6b6b", marginTop: 8 }}>⚠️ נתוני ממוצע אינם זמינים — נשמרו לפני עדכון המעקב. אפס כדי להתחיל מחדש.</div>
-                  )}
                 </div>
               </div>
             );
