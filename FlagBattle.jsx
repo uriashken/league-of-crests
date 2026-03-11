@@ -1512,7 +1512,7 @@ export default function App() {
         </div>
         <div style={{ marginTop: mob ? 14 : 20, display: "flex", gap: mob ? 12 : 20, justifyContent: "center", flexWrap: "wrap", fontSize: mob ? "0.85rem" : "1.1rem", fontWeight: 700, color: "#c4a84f" }}>
           <span>{"מספר ההצבעות: " + battles.toLocaleString()}</span>
-          <span>{"מספר ערים משתתפות: " + all.filter(c => !failed[c.id]).length}</span>
+          <span>{"מספר ישובים משתתפים:" + all.filter(c => !failed[c.id]).length}</span>
         </div>
       </header>
 
