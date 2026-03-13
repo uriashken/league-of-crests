@@ -1577,7 +1577,7 @@ export default function App() {
           const dur = Math.max(12, recent.length * 5);
           return (
             <>
-              <style>{`@keyframes lc-ticker { from { left: 0; } to { left: 100%; } }`}</style>
+              <style>{`@keyframes lc-ticker { from { left: 0; transform: translateX(-100%) translateY(-50%); } to { left: 100%; transform: translateX(0%) translateY(-50%); } }`}</style>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, margin: "10px auto 0", maxWidth: mob ? 340 : 560 }}>
                 <span style={{ color: "#c4a84f", fontWeight: 700, fontSize: mob ? "0.8rem" : "0.95rem", whiteSpace: "nowrap", flexShrink: 0 }}>נוספו לאחרונה:</span>
                 <div style={{ overflow: "hidden", flex: 1, position: "relative", borderRadius: 20, background: "rgba(255,255,255,.06)", height: mob ? "1.6em" : "1.8em" }}>
@@ -1585,7 +1585,7 @@ export default function App() {
                     const names = recent.map(c => c.name).join("  ·  ");
                     const tickerDur = Math.max(8, names.length * 0.35);
                     return (
-                      <span style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", whiteSpace: "nowrap", animation: `lc-ticker ${tickerDur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem", color: "#e8ecf4" }}>
+                      <span style={{ position: "absolute", top: "50%", whiteSpace: "nowrap", animation: `lc-ticker ${tickerDur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem", color: "#e8ecf4" }}>
                         {names}
                       </span>
                     );
