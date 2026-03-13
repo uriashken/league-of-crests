@@ -1389,7 +1389,7 @@ export default function App() {
               const winPct = city.total > 0 ? Math.round((city.wins || 0) / city.total * 100) + "%" : "—";
               return (
                 <div key={city.id} style={Object.assign({}, G.lbrow, medal && i < 3 && !q ? { background: "rgba(196,168,79,.07)", border: "1px solid rgba(196,168,79,.14)" } : {})}>
-                  <span style={{ minWidth: 26, textAlign: "center", color: "#c4a84f", fontSize: "0.9rem" }}>{medal || "·"}</span>
+                  {!q && <span style={{ minWidth: 26, textAlign: "center", color: "#c4a84f", fontSize: "0.9rem" }}>{medal || "·"}</span>}
                   <span style={{ flex: "1 1 0", minWidth: 0, fontSize: "0.95rem", color: "#e8ecf4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{city.name}</span>
                   <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
@@ -1403,7 +1403,7 @@ export default function App() {
             };
             const headerRow = (
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "0.72rem", color: "#5a7099", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
-                <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
+                {!q && <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>}
                 <span style={{ flex: "1 1 0", minWidth: 0 }}>שם הישוב</span>
                 <span style={{ width: 68, textAlign: "center", flexShrink: 0 }}>סמל</span>
                 <span style={{ minWidth: 44, textAlign: "center" }}>ניקוד</span>
