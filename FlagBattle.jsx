@@ -354,6 +354,8 @@ export default function App() {
   }, []);
 
   useEffect(() => { sRef.current = stats; }, [stats]);
+  const matchupsRef = useRef({});
+  useEffect(() => { matchupsRef.current = matchups; }, [matchups]);
 
   useEffect(() => {
     const poll = setInterval(async () => {
@@ -386,22 +388,61 @@ export default function App() {
   const pick = useCallback((cities, cur) => {
     const av = cities.filter(c => !failed[c.id]);
     if (av.length < 2) return;
-    const one = (excl) => {
-      const pool = excl ? av.filter(c => c.id !== excl.id) : av;
-      const ws = pool.map(c => {
-        const tot = sRef.current[c.id] ? sRef.current[c.id].total : 0;
-        const base = 1 / (tot + 1);
-        const boost = tot < MIN_BATTLES ? (MIN_BATTLES - tot) * 0.5 : 0;
-        return base + boost;
-      });
+
+    // Sort by Elo to determine strength percentile
+    const sorted = [...av].sort((x, y) => (sRef.current[y.id]?.elo ?? 0) - (sRef.current[x.id]?.elo ?? 0));
+    const NUM_BUCKETS = 4;
+    const bucketOf = (id) => {
+      const idx = sorted.findIndex(c => c.id === id);
+      return idx < 0 ? 0 : Math.min(NUM_BUCKETS - 1, Math.floor(idx / sorted.length * NUM_BUCKETS));
+    };
+
+    // Base battle-count weight (unchanged logic)
+    const battleWeight = (c) => {
+      const tot = sRef.current[c.id]?.total ?? 0;
+      const base = 1 / (tot + 1);
+      const boost = tot < MIN_BATTLES ? (MIN_BATTLES - tot) * 0.5 : 0;
+      return base + boost;
+    };
+
+    // Weighted select from pool with optional extra weight per city
+    const selectFrom = (pool, extraW) => {
+      const ws = pool.map(c => battleWeight(c) * (extraW ? extraW(c) : 1));
       const tw = ws.reduce((a, b) => a + b, 0);
       let r = Math.random() * tw;
       for (let i = 0; i < pool.length; i++) { r -= ws[i]; if (r <= 0) return pool[i]; }
       return pool[pool.length - 1];
     };
-    let a, b, t = 0;
-    do { a = one(null); b = one(a); t++; }
-    while (t < 50 && cur && ((a.id===cur[0].id&&b.id===cur[1].id)||(a.id===cur[1].id&&b.id===cur[0].id)));
+
+    // Pick city A using standard battle-count weight
+    const a = selectFrom(av);
+
+    // Count how many battles A has fought against each Elo bucket
+    const bucketCounts = new Array(NUM_BUCKETS).fill(0);
+    const mups = matchupsRef.current;
+    for (const key of Object.keys(mups)) {
+      if (!key.includes(a.id)) continue;
+      const ids = key.split("|");
+      const oppId = ids.find(id => id !== a.id);
+      if (!oppId) continue;
+      const battles = (mups[key][ids[0]] || 0) + (mups[key][ids[1]] || 0);
+      bucketCounts[bucketOf(oppId)] += battles;
+    }
+
+    // Diversity weight: inverse of how much A has already fought in each bucket
+    const diversityWeight = (c) => 1 / (bucketCounts[bucketOf(c.id)] + 1);
+
+    // Pick B: blend battle-count weight with diversity weight
+    const bPool = av.filter(c => c.id !== a.id);
+    let b = selectFrom(bPool, c => battleWeight(c) + diversityWeight(c) * 2);
+
+    // Avoid repeating the exact same pair
+    let t = 0;
+    while (t < 50 && cur && ((a.id===cur[0].id&&b.id===cur[1].id)||(a.id===cur[1].id&&b.id===cur[0].id))) {
+      b = selectFrom(bPool, c => battleWeight(c) + diversityWeight(c) * 2);
+      t++;
+    }
+
     setPair([a, b]); setDims({});
   }, [failed]);
 
@@ -1536,16 +1577,15 @@ export default function App() {
           const dur = Math.max(12, recent.length * 5);
           return (
             <>
-              <style>{`@keyframes lc-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }`}</style>
+              <style>{`@keyframes lc-ticker { from { transform: translateX(0); } to { transform: translateX(-100%); } }`}</style>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, margin: "10px auto 0", maxWidth: mob ? 340 : 560 }}>
                 <span style={{ color: "#c4a84f", fontWeight: 700, fontSize: mob ? "0.8rem" : "0.95rem", whiteSpace: "nowrap", flexShrink: 0 }}>נוספו לאחרונה:</span>
-                <div style={{ overflow: "hidden", flex: 1, borderRadius: 20, background: "rgba(255,255,255,.06)", padding: mob ? "5px 14px" : "6px 18px", direction: "ltr" }}>
+                <div style={{ overflow: "hidden", flex: 1, borderRadius: 20, background: "rgba(255,255,255,.06)", padding: mob ? "5px 0" : "6px 0", direction: "ltr" }}>
                   {(() => {
-                    const names = recent.map(c => c.name).join("  ·  ") + "  ·  ";
-                    const tickerDur = Math.max(8, names.length * 0.25);
+                    const names = recent.map(c => c.name).join("  ·  ");
+                    const tickerDur = Math.max(10, names.length * 0.4);
                     return (
-                      <div style={{ display: "inline-flex", whiteSpace: "nowrap", animation: `lc-ticker ${tickerDur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem" }}>
-                        <span style={{ color: "#e8ecf4" }}>{names}</span>
+                      <div style={{ display: "inline-block", whiteSpace: "nowrap", paddingLeft: "100%", animation: `lc-ticker ${tickerDur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem" }}>
                         <span style={{ color: "#e8ecf4" }}>{names}</span>
                       </div>
                     );
