@@ -110,6 +110,8 @@ function wilson(wins, total) {
 
 const ELO_BASE = 0;
 const MIN_BATTLES = 5;
+const PRELOAD_BATCH_SIZE = 15;
+const PRELOAD_BATCH_DELAY = 150;
 function confPenalty(total) { return Math.round(3 * ELO_K / Math.sqrt(total + 1)); }
 const ELO_K = 32;
 
@@ -262,6 +264,7 @@ export default function App() {
   const [failed, setFailed] = useState({});
   const [loading, setLoading] = useState(true);
   const [preloadReady, setPreloadReady] = useState(false);
+  const [preloadBatch, setPreloadBatch] = useState(0);
   const [dims, setDims] = useState({});
   const [cityProfile, setCityProfile] = useState(null);
 
@@ -456,6 +459,13 @@ export default function App() {
   }, [loading]);
 
   useEffect(() => { if (preloadReady) pick(all, null); }, [preloadReady]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (preloadBatch * PRELOAD_BATCH_SIZE >= all.length) return;
+    const t = setTimeout(() => setPreloadBatch(b => b + 1), preloadBatch === 0 ? 0 : PRELOAD_BATCH_DELAY);
+    return () => clearTimeout(t);
+  }, [preloadBatch, loading]);
 
   const vote = useCallback(async (wid, lid) => {
     if (voted || anim.current) return;
@@ -1533,6 +1543,13 @@ export default function App() {
 
   return (
     <div style={G.root} dir="rtl">
+      <div style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
+        {all.slice(0, preloadBatch * PRELOAD_BATCH_SIZE).map(c => (
+          <img key={c.id + "|" + getSrc(c, ov)} src={getSrc(c, ov)} alt=""
+            onError={() => { failedRef.current = Object.assign({}, failedRef.current, { [c.id]: true }); setFailed(failedRef.current); }}
+            onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[c.id]; return n; })} />
+        ))}
+      </div>
       <header style={G.hdr}>
         <h1 style={G.title}>League of Crests</h1>
         <p style={{ margin: "14px auto 0", fontSize: mob ? "1rem" : "1.2rem", fontWeight: 400, color: "#e8ecf4", textAlign: "center", lineHeight: 1.35, maxWidth: 640 }}>
