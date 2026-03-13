@@ -1383,8 +1383,8 @@ export default function App() {
           />
           {(() => {
             const q = lbSearch.trim();
-            const filtConf = q ? confirmed.filter(c => c.name.includes(q)) : confirmed;
-            const filtProv = q ? provisional.filter(c => c.name.includes(q)) : provisional;
+            const filtConf = q ? confirmed.filter(c => c.name.includes(q)).sort((a, b) => a.name.localeCompare(b.name, "he")) : confirmed;
+            const filtProv = q ? provisional.filter(c => c.name.includes(q)).sort((a, b) => a.name.localeCompare(b.name, "he")) : provisional;
             const renderRow = (city, i, medal) => {
               const winPct = city.total > 0 ? Math.round((city.wins || 0) / city.total * 100) + "%" : "—";
               return (
