@@ -1577,15 +1577,15 @@ export default function App() {
           const dur = Math.max(12, recent.length * 5);
           return (
             <>
-              <style>{`@keyframes lc-ticker { from { transform: translateX(0); } to { transform: translateX(-100%); } }`}</style>
+              <style>{`@keyframes lc-ticker { from { transform: translateX(-100%); } to { transform: translateX(100%); } }`}</style>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, margin: "10px auto 0", maxWidth: mob ? 340 : 560 }}>
                 <span style={{ color: "#c4a84f", fontWeight: 700, fontSize: mob ? "0.8rem" : "0.95rem", whiteSpace: "nowrap", flexShrink: 0 }}>נוספו לאחרונה:</span>
                 <div style={{ overflow: "hidden", flex: 1, borderRadius: 20, background: "rgba(255,255,255,.06)", padding: mob ? "5px 0" : "6px 0", direction: "ltr" }}>
                   {(() => {
                     const names = recent.map(c => c.name).join("  ·  ");
-                    const tickerDur = Math.max(10, names.length * 0.4);
+                    const tickerDur = Math.max(15, names.length * 0.6);
                     return (
-                      <div style={{ display: "inline-block", whiteSpace: "nowrap", paddingLeft: "100%", animation: `lc-ticker ${tickerDur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem" }}>
+                      <div style={{ display: "inline-block", whiteSpace: "nowrap", paddingRight: "100%", animation: `lc-ticker ${tickerDur}s linear infinite`, fontSize: mob ? "0.8rem" : "0.95rem" }}>
                         <span style={{ color: "#e8ecf4" }}>{names}</span>
                       </div>
                     );
