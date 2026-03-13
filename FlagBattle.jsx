@@ -330,6 +330,7 @@ export default function App() {
   const reqFileRef = useRef(null);
   const idleRef = useRef(null);
   const sRef = useRef({});
+  const failedRef = useRef({});
 
   const all = CITIES.map(c => Object.assign({}, c, ov[c.id] ? { customOverride: ov[c.id] } : {})).concat(custom);
 
@@ -354,6 +355,7 @@ export default function App() {
   }, []);
 
   useEffect(() => { sRef.current = stats; }, [stats]);
+  useEffect(() => { failedRef.current = failed; }, [failed]);
   const matchupsRef = useRef({});
   useEffect(() => { matchupsRef.current = matchups; }, [matchups]);
 
@@ -386,7 +388,7 @@ export default function App() {
   }, []);
 
   const pick = useCallback((cities, cur) => {
-    const av = cities.filter(c => !failed[c.id]);
+    const av = cities.filter(c => !failedRef.current[c.id]);
     if (av.length < 2) return;
 
     // Sort by Elo to determine strength percentile
@@ -444,7 +446,7 @@ export default function App() {
     }
 
     setPair([a, b]); setDims({});
-  }, [failed]);
+  }, []);
 
   useEffect(() => {
     if (!loading) {
@@ -1613,8 +1615,9 @@ export default function App() {
                         : <img src={getSrc(city, ov)} alt={city.name}
                             style={G.fimg}
                             onError={() => {
-                              setFailed(p => Object.assign({}, p, { [city.id]: true }));
-                              setTimeout(() => pick(all, null), 100);
+                              failedRef.current = Object.assign({}, failedRef.current, { [city.id]: true });
+                              setFailed(failedRef.current);
+                              pick(all, null);
                             }} />
                       }
                       {isW && <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(80,200,100,.9)", color: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>✓ ניצח!</div>}
