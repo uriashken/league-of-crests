@@ -57,7 +57,7 @@ const KM = "il_matchups_v1";
 
 
 function wikiUrl(f) {
-  return "https://commons.wikimedia.org/wiki/Special:FilePath/" + f;
+  return "https://commons.wikimedia.org/wiki/Special:FilePath/" + f + "?width=300";
 }
 
 function normUrl(raw) {
