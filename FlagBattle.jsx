@@ -1398,7 +1398,7 @@ export default function App() {
                   <span style={{ flex: "1 1 0", minWidth: 0, fontSize: "0.95rem", color: "#e8ecf4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{city.name}</span>
                   <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
-                    <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
+                    <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[city.id]; return n; })} />
                   </div>
                   <span style={{ minWidth: 44, fontSize: "0.9rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.total > 0 ? city.score : "—"}</span>
                   <span style={{ minWidth: 44, fontSize: "0.85rem", color: "#5a7099", textAlign: "center" }}>{city.total}</span>
@@ -1531,13 +1531,6 @@ export default function App() {
 
   return (
     <div style={G.root} dir="rtl">
-      <div style={{ position: "absolute", width: 0, height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }}>
-        {all.map(c => (
-          <img key={c.id + "|" + getSrc(c, ov)} src={getSrc(c, ov)} alt=""
-            onError={() => setFailed(p => Object.assign({}, p, { [c.id]: true }))}
-            onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[c.id]; return n; })} />
-        ))}
-      </div>
       <header style={G.hdr}>
         <h1 style={G.title}>League of Crests</h1>
         <p style={{ margin: "14px auto 0", fontSize: mob ? "1rem" : "1.2rem", fontWeight: 400, color: "#e8ecf4", textAlign: "center", lineHeight: 1.35, maxWidth: 640 }}>
@@ -1668,7 +1661,7 @@ export default function App() {
                   <span style={{ flex: "1 1 0", minWidth: 0, fontSize: mob ? "1rem" : "1.1rem", color: "#e8ecf4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{city.name}</span>
                   <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
-                    <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
+                    <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[city.id]; return n; })} />
                   </div>
                   <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "1rem" : "1.05rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
                   <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#c4a84f", textAlign: "center" }}>{city.total}</span>
@@ -1705,7 +1698,7 @@ export default function App() {
                   <span style={{ flex: "1 1 0", minWidth: 0, fontSize: mob ? "1rem" : "1.1rem", color: "#e8ecf4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{city.name}</span>
                   <div style={{ width: 68, height: 44, overflow: "hidden", borderRadius: 5, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
                     onMouseEnter={() => setCityProfile(city)} onMouseLeave={() => setCityProfile(null)}>
-                    <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} />
+                    <img src={getSrc(city, ov)} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={() => setFailed(p => Object.assign({}, p, { [city.id]: true }))} onLoad={() => setFailed(p => { const n = Object.assign({}, p); delete n[city.id]; return n; })} />
                   </div>
                   <span style={{ minWidth: mob ? 32 : 44, fontSize: mob ? "1rem" : "1.05rem", color: "#c4a84f", fontWeight: 700, textAlign: "center" }}>{city.score}</span>
                   <span style={{ minWidth: mob ? 28 : 44, fontSize: mob ? "0.95rem" : "1rem", color: "#c4a84f", textAlign: "center" }}>{city.total}</span>
