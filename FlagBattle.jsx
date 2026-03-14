@@ -109,7 +109,7 @@ function wilson(wins, total) {
 }
 
 const ELO_BASE = 0;
-const MIN_BATTLES = 5;
+const MIN_BATTLES = 20;
 const PRELOAD_BATCH_SIZE = 15;
 const PRELOAD_BATCH_DELAY = 150;
 
@@ -1509,7 +1509,7 @@ export default function App() {
                 <li>הפסד לעיר <strong style={{ color: "#ff6b6b" }}>חלשה</strong> — מפסידים הרבה נקודות.</li>
               </ul>
               <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>ערים חדשות נעות מהר, ערים ותיקות יציבות:</strong> עיר שרק הצטרפה יכולה לעלות ולרדת מהר כדי להתמקם במהירות. עיר שכבר עשתה מאות קרבות — הניקוד שלה זז לאט, כי הוא כבר מבוסס על הרבה מאוד נתונים.</p>
-              <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>שלב מיון:</strong> עיר נכנסת לדירוג הרשמי רק אחרי לפחות {MIN_BATTLES} קרבות. עד אז היא מסומנת "בשלב מיון" — כי עם קרבות בודדים, הניקוד עדיין לא אמין.</p>
+              <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>שלב מיון:</strong> עיר נכנסת לדירוג הרשמי רק אחרי לפחות {MIN_BATTLES} קרבות. עד אז היא מסומנת "בשלב מיון" — כי עם מעט קרבות, עדיין אי אפשר לסמוך על הניקוד שלה.</p>
               <p style={{ margin: 0 }}><strong style={{ color: "#e8ecf4" }}>ניקוד שלילי:</strong> אפשרי לגמרי. עיר שמפסידה שוב ושוב — בעיקר לערים חלשות — תרד מתחת לאפס. זה פשוט אומר שהסמל שלה נחשב פחות מהממוצע.</p>
               <p style={{ margin: 0, color: "#8fa3c4", fontSize: "0.85rem" }}>הדירוג מתעדכן בזמן אמת אחרי כל הצבעה, ומשתפר ככל שיותר אנשים משתתפים.</p>
             </div>
@@ -1669,7 +1669,7 @@ export default function App() {
             <button style={{ background: "transparent", border: "1px solid rgba(196,168,79,.3)", color: "#c4a84f", borderRadius: 8, padding: "5px 11px", fontSize: "0.9rem", cursor: "pointer" }}
               onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
-          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ישובים שהשתתפו בלמעלה מ-{MIN_BATTLES} קרבות</div>
+          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ישובים שצברו לפחות {MIN_BATTLES} קרבות — הדירוג שלהם אמין</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "1rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
@@ -1707,7 +1707,7 @@ export default function App() {
             <button style={{ background: "transparent", border: "1px solid rgba(143,163,196,.3)", color: "#8fa3c4", borderRadius: 8, padding: "5px 11px", fontSize: "0.9rem", cursor: "pointer" }}
               onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
-          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ישובים עם פחות מ-{MIN_BATTLES} קרבות</div>
+          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ישובים שעדיין לא הגיעו ל-{MIN_BATTLES} קרבות — הדירוג שלהם זמני</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "1rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
