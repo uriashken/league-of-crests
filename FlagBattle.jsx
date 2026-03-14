@@ -112,19 +112,27 @@ const ELO_BASE = 0;
 const MIN_BATTLES = 5;
 const PRELOAD_BATCH_SIZE = 15;
 const PRELOAD_BATCH_DELAY = 150;
-function confPenalty(total) { return Math.round(3 * ELO_K / Math.sqrt(total + 1)); }
-const ELO_K = 32;
+
+// K יורד ככל שלעיר יש יותר קרבות — ערים חדשות נעות מהר, ערים מבוססות יציבות
+function eloK(total) {
+  if (total < 30) return 40;
+  if (total < 100) return 24;
+  return 12;
+}
+
+// קנס ביטחון: קבוע (96) חלקי שורש הקרבות — לא תלוי ב-K
+function confPenalty(total) { return Math.round(96 / Math.sqrt(total + 1)); }
 
 function eloExpected(rA, rB) {
   return 1 / (1 + Math.pow(10, (rB - rA) / 400));
 }
 
-function calcElo(winnerElo, loserElo) {
+function calcElo(winnerElo, loserElo, winnerTotal, loserTotal) {
   const expW = eloExpected(winnerElo, loserElo);
   const expL = eloExpected(loserElo, winnerElo);
   return {
-    newWinner: Math.round(winnerElo + ELO_K * (1 - expW)),
-    newLoser: Math.round(loserElo + ELO_K * (0 - expL)),
+    newWinner: Math.round(winnerElo + eloK(winnerTotal) * (1 - expW)),
+    newLoser: Math.round(loserElo + eloK(loserTotal) * (0 - expL)),
   };
 }
 
@@ -507,7 +515,7 @@ export default function App() {
       next[wid].wins++;
       const we = next[wid].elo ?? ELO_BASE;
       const le = next[lid].elo ?? ELO_BASE;
-      const { newWinner, newLoser } = calcElo(we, le);
+      const { newWinner, newLoser } = calcElo(we, le, next[wid].total - 1, next[lid].total - 1);
       next[wid].elo = newWinner;
       next[lid].elo = newLoser;
       const nb = battles + 1; setBattles(nb);
