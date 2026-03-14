@@ -1669,7 +1669,7 @@ export default function App() {
             <button style={{ background: "transparent", border: "1px solid rgba(196,168,79,.3)", color: "#c4a84f", borderRadius: 8, padding: "5px 11px", fontSize: "0.9rem", cursor: "pointer" }}
               onClick={() => { setView("leaderboard"); setLbSearch(""); }}>הצג טבלה מלאה</button>
           </div>
-          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ישובים שצברו לפחות {MIN_BATTLES} קרבות — הדירוג שלהם אמין</div>
+          <div style={{ fontSize: "0.88rem", color: "#e8ecf4", marginBottom: 12 }}>ישובים שצברו לפחות {MIN_BATTLES} קרבות</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 10px", fontSize: "1rem", color: "#e8ecf4", fontWeight: 700, borderBottom: "1px solid rgba(255,255,255,.06)", marginBottom: 4 }}>
               <span style={{ minWidth: 26, textAlign: "center" }}>מקום</span>
